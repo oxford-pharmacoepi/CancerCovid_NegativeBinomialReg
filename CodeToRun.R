@@ -36,6 +36,9 @@ library(feasts)
 library(magrittr)
 library(ciTools)
 library(readr)
+library(log4r)
+library(CirceR)
+library(CDMConnector)
 
 
 # database metadata and connection details -----
@@ -86,7 +89,7 @@ results_database_schema<-"..."
 # Note, if there is an existing table in your results schema with the same names
 # it will be overwritten 
 
-outcome_table_stem<-"..."
+outcome_table_stem<-"..."  # must all be lower case
 
 
 # create cdm reference ----

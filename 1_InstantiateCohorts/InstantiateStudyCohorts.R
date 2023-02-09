@@ -5,9 +5,6 @@
 # ============================================================================ #
 
 
-
-
-
 # ============================================================================ #
 #               1.  GENERAL POPULATION DENOMINATOR FROM 2017                   #
 # ============================================================================ #
@@ -19,15 +16,16 @@ info(logger, "- getting general population exposure cohorts")
 exposure_cohorts_1 <- readCohortSet(here::here("1_InstantiateCohorts","ExposureCohorts"))
 
 
-
-
 cdm <- generateCohortSet(cdm = cdm, 
                          cohortSet = exposure_cohorts_1,
                          cohortTableName = exposure_table_name_1,
                          overwrite = TRUE
 )
 
-cdm$exposure_table_name_1 %>% group_by(cohort_definition_id) %>% tally() %>% collect() 
+cdm[[exposure_table_name_1]] %>% group_by(cohort_definition_id) %>% tally() %>% collect() 
+
+# cohort_definition_id       n
+#  1                     3913071
 
 info(logger, "- got general population exposure cohorts")
 
@@ -52,7 +50,13 @@ cdm <- generateCohortSet(cdm = cdm,
                          overwrite = TRUE
 )
 
-cdm$outcome_table_name_1 %>% group_by(cohort_definition_id) %>% tally() %>% collect() 
+cdm[[outcome_table_name_1]] %>% group_by(cohort_definition_id) %>% tally() %>% collect() 
+
+# cohort_definition_id       n (records)
+#                     1   15724 Breast
+#                     3    8847 Lung
+#                     4   12869 Prostate
+#                     2    9576 Colorectal
 
 info(logger, "- got cancer outcomes")
 

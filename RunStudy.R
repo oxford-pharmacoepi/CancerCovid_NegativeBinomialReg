@@ -16,7 +16,6 @@ if (!file.exists(output.folder4)){
 exposure_table_name_1 <- paste0(outcome_table_stem,"_denominator") # this is the data for the cancer outcomes after lockdown
 outcome_table_name_1 <- paste0(outcome_table_stem,"_cancers") # this is the data for the cancer outcomes before lockdown
 
-outcome_db <- 
 start<-Sys.time()
 
 # start log ----
