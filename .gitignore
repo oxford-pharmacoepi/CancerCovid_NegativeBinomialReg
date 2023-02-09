@@ -38,4 +38,4 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
-CodeToRun.R-local
+CodeToRun-local.R
