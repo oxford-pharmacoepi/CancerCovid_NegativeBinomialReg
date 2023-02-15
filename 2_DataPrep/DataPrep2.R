@@ -9,7 +9,12 @@
 
 # Read the csv file of incidence results from the IncPrev package ----
 
-inc_data <- read.csv(here(file = "2_DataPrep", "Data", "incidence_estimates_cancers.csv"))
+# inc_data <- read.csv(here(file = "2_DataPrep", "Data", "incidence_estimates_cancers.csv"))
+inc_data <- read_csv("2_DataPrep/Data/incidence_estimates_cancers.csv")
+
+
+View(incidence_estimates_cancers)
+
 
 # columns to remove from inc_data
 inc_data <- inc_data %>% dplyr::select(c(-analysis_id, -cohort_obscured, -analysis_outcome_washout, - denominator_days_prior_history,
@@ -38,7 +43,12 @@ inc_data <- inc_data %>% mutate(year = as.Date(inc_data$incidence_start_date, fo
 
 # create month column
 inc_data <- inc_data %>% mutate(month = as.Date(inc_data$incidence_start_date, format="%d/%m/%Y")) %>%
-  mutate(month = format(month, format = "%-m"))
+  mutate(month = format(month, format = "%m"))
+
+# create month-year column
+inc_data <- inc_data %>% mutate(month_year = as.Date(inc_data$incidence_start_date, format="%d/%m/%Y")) %>%
+  mutate(month_year = format(month_year, format = "%m/%Y"))
+
 
 # compute person months
 inc_data <- inc_data %>% mutate(months = inc_data$person_days/30.4375) # this is the average number of days in a month
@@ -50,8 +60,11 @@ inc_data <- inc_data %>% mutate(ir_m = ((inc_data$n_events/months)*100000))
 # dates ----
 #start date
 start.date<-as.Date(dmy(paste0("01-01-","2017")))
+start.date.month.year<- format(as.Date(start.date), "%m-%Y")
+
 #end date 
 end.date<-as.Date(dmy(paste0("22-03-","2020")))
+end.date.month.year<- format(as.Date(end.date), "%m-%Y")
 
 # number of months in the study
 n.months<-lubridate::interval(ymd(start.date),ymd(end.date)) %/% months(1)
@@ -59,10 +72,41 @@ n.months<-lubridate::interval(ymd(start.date),ymd(end.date)) %/% months(1)
 
 # create months since start of the study for each of the estimates
 
-inc_data <- inc_data %>% mutate(date_formatted = as.Date(inc_data$incidence_start_date, format="%d/%m/%Y"))
+inc_data <- inc_data %>% mutate(date_formatted = as.Date(dmy(inc_data$incidence_start_date)))
 class(inc_data$date_formatted)
 
-test <- inc_data %>% difftime(end.date, start.date, units = "months")
+
+
+# test function for getting number of months since start ----------------------
+
+months.since.start.working <- function(d) { lt <- as.POSIXlt(as.Date(d, origin = "1900-01-01"))
+                        lt$year*12 + lt$mon}
+
+months.since.start.function <- function(d1, d2) {months.since.start.working(d2) - months.since.start.working(d1)}
+
+
+inc_data <- inc_data %>% mutate(months.since.start = 1+(months.since.start.function(start.date, inc_data$date_formatted)))
+
+# show all date variables to check correct
+inc_data  %>% dplyr::select(incidence_start_date, date_formatted, months.since.start) %>% print(n=40)
+
+
+# add covid time periods for months since start
+inc_data <- inc_data %>% mutate(covid = case_when(months.since.start <= 38 ~ "Pre-COVID", # start date is 01-2017, so 38 months is up to 1st March 2020
+                                                  (months.since.start >= 39)&(months.since.start <= 41)~ "Lockdown", # March 2020 up to end of June
+                                                  (months.since.start >= 42)&(months.since.start <= 45)~ "Post-lockdown1", # July to end of oct 2020
+                                                  (months.since.start >= 46)&(months.since.start <= 47)~ "Second lockdown", # Nov - end of Dec 2020
+                                                  (months.since.start >= 48)&(months.since.start <= 49)~ "Third lockdown", # Jan - end of feb 2021
+                                                  (months.since.start >= 50)&(months.since.start <= 53)~ "Easing of restrictions", # March - end of june 2021
+                                                  months.since.start >= 54  ~ "Legal restrictions removed")) #  july 2021 onwards
+
+# show all date variables to check correct
+inc_data  %>% dplyr::select(incidence_start_date, date_formatted, months.since.start, covid) %>% print(n=40)
+
+
+# UPTO HERE
+
+
 
 
 # define the population ----
