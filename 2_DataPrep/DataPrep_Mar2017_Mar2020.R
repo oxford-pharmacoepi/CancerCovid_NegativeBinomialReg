@@ -8,6 +8,8 @@
 
 
 # Read the csv file of incidence results from the IncPrev package ----
+# This creates the data for use in validating the model using all pre-covid data
+# Jan 2017 to March 2020
 
 # inc_data <- read.csv(here(file = "2_DataPrep", "Data", "incidence_estimates_cancers.csv"))
 inc_data <- read_csv("2_DataPrep/Data/incidence_estimates_cancers.csv")
@@ -60,7 +62,7 @@ start.date<-as.Date(dmy(paste0("01-01-","2017")))
 start.date.month.year<- format(as.Date(start.date), "%m-%Y")
 
 #end date 
-end.date<-as.Date(dmy(paste0("22-03-","2020")))
+end.date<-as.Date(dmy(paste0("01-03-","2020")))
 end.date.month.year<- format(as.Date(end.date), "%m-%Y")
 
 # number of months in the study

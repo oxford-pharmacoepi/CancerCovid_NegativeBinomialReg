@@ -28,10 +28,10 @@ library(ggpubr)
 
 ###### Observed vs expected (Negative Binomial Regression models)
 ###Forecast:
-##Fit to 01/01/2017- 22/03/2020
+##Fit to 01/01/2018- 22/03/2020
 ##Forecast 23/03/2020 - 01/06/2022
 
-load(here("2_DataPrep", "Data", "GeneralPop2017_20.RData"))
+load(here("2_DataPrep", "Data", "GeneralPop2018_22.RData"))
 
 
 IR.overall <- inc_data_final %>% mutate(Month1 =paste(1,month, year, sep ="-")) %>% filter(denominator_cohort_id ==1)
@@ -62,9 +62,9 @@ models_post <- list()
 IR.overall$covid2 <- NA
 IR.overall$covid2[which(IR.overall$covid =="Pre-COVID")] <- "Pre-COVID"
 IR.overall$covid2[which(IR.overall$covid =="Lockdown")] <- "Lockdown"
-IR.overall$covid2[which(IR.overall$months.since.start >=42)] <- "Post-COVID"
+IR.overall$covid2[which(IR.overall$months.since.start >=31)] <- "Post-COVID"
 
-end_mod <- 38 #month.since.start= Feb 2020
+end_mod <- 26 #month.since.start= Feb 2020 assuming start date of 2018
 
 
 for(j in 1:length(outcomes_to_fit)){
@@ -129,7 +129,7 @@ tab1 <-rbind(tab_red, tab_dif)
 
 write.csv(tab1, "5_Results/Modelling/overall_table.rev.csv")
 write.csv(tab, "5_Results/Modelling/overall_red.rev.csv")
-save(prediction_overall, file=here("5_Results", "WorkingData", "Prediction_Overall_2017-2020.rev.RData"))
+save(prediction_overall, file=here("5_Results", "WorkingData", "Prediction_Overall_2018-2022.rev.RData"))
 rm(IR.overall,models, models_period, models_post, models_pred, models_total, pred,
    prediction_overall_periods, tab, working.nb, predicton_overall_periods)
 
@@ -149,9 +149,9 @@ models.age_gender_post <- list()
 IR.age_gender$covid2 <- NA
 IR.age_gender$covid2[which(IR.age_gender$covid =="Pre-COVID")] <- "Pre-COVID"
 IR.age_gender$covid2[which(IR.age_gender$covid =="Lockdown")] <- "Lockdown"
-IR.age_gender$covid2[which(IR.age_gender$months.since.start >=42)] <- "Post-COVID"
+IR.age_gender$covid2[which(IR.age_gender$months.since.start >=31)] <- "Post-COVID"
 
-end_mod <- 38 #month.since.start= Feb 2020
+end_mod <- 26 #month.since.start= Feb 2020 assuming start date in Jan 2018
 
 
 ## FOR SOME REASON THIS ONLY RUNS FOR LUNG CANCER AND DOES NOT CREATE PREDICTIONS FOR THE OTHERS
@@ -279,7 +279,7 @@ models.ses_post <- list()
 IR.ses$covid2 <- NA
 IR.ses$covid2[which(IR.ses$covid =="Pre-COVID")] <- "Pre-COVID"
 IR.ses$covid2[which(IR.ses$covid =="Lockdown")] <- "Lockdown"
-IR.ses$covid2[which(IR.ses$months.since.start >=29)] <- "Post-COVID"
+IR.ses$covid2[which(IR.ses$months.since.start >=31)] <- "Post-COVID"
 
 end_mod <- 24 #month.since.start= Feb 2020
 IR.ses$medea <- as.factor(IR.ses$medea)
