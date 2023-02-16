@@ -28,8 +28,8 @@ library(ggpubr)
 
 ###### Observed vs expected (Negative Binomial Regression models)
 ###Forecast:
-##Fit to 01/01/2018- 22/03/2020
-##Forecast 23/03/2020 - 01/06/2022
+##Fit to 01/01/2018- 01/02/2020
+##Forecast 01/03/2020 - 01/06/2022
 
 load(here("2_DataPrep", "Data", "GeneralPop2018_22.RData"))
 
@@ -127,13 +127,11 @@ tab_dif <- predicton_overall_periods %>%
 
 tab1 <-rbind(tab_red, tab_dif)
 
-write.csv(tab1, "5_Results/Modelling/overall_table.rev.csv")
-write.csv(tab, "5_Results/Modelling/overall_red.rev.csv")
-save(prediction_overall, file=here("5_Results", "WorkingData", "Prediction_Overall_2018-2022.rev.RData"))
+write.csv(tab1, "5_Results/Modelling/overall_table.csv")
+write.csv(tab, "5_Results/Modelling/overall_red.csv")
+save(prediction_overall, file=here("5_Results", "Modelling", "Prediction_Overall_2018-2022.RData"))
 rm(IR.overall,models, models_period, models_post, models_pred, models_total, pred,
    prediction_overall_periods, tab, working.nb, predicton_overall_periods)
-
-# UP TO HERE
 
 
 
@@ -255,12 +253,12 @@ tab_dif <- tab_gender0 %>%
 tab_gender <-rbind(tab_gender, tab_dif)
 
 
-write.csv(tab_age.gender, "5_Results/Modelling/age_gender_red_table.rev.csv")
-write.csv(tab_gender, "5_Results/Modelling/gender_red_table.rev.csv")
-write.csv(tab_age.gender, "5_Results/Modelling/age_gender_red_table.rev.csv")
-write.csv(tab, "5_Results/Modelling/age.gender_red.rev.csv")
-write.csv(tab_gender0, "5_Results/Modelling/gender_red.rev.csv")
-save(prediction_age.gender, file=here("5_Results", "WorkingData", "Prediction_age.gender.rev.RData"))
+write.csv(tab_age.gender, "5_Results/Modelling/age_gender_red_table.csv")
+write.csv(tab_gender, "5_Results/Modelling/gender_red_table.csv")
+write.csv(tab_age.gender, "5_Results/Modelling/age_gender_red_table.csv")
+write.csv(tab, "5_Results/Modelling/age.gender_red.csv")
+write.csv(tab_gender0, "5_Results/Modelling/gender_red.csv")
+save(prediction_age.gender, file=here("5_Results", "Modelling", "Prediction_age.gender.RData"))
 
 
 
@@ -281,7 +279,7 @@ IR.ses$covid2[which(IR.ses$covid =="Pre-COVID")] <- "Pre-COVID"
 IR.ses$covid2[which(IR.ses$covid =="Lockdown")] <- "Lockdown"
 IR.ses$covid2[which(IR.ses$months.since.start >=31)] <- "Post-COVID"
 
-end_mod <- 24 #month.since.start= Feb 2020
+end_mod <- 26 #month.since.start= Feb 2020
 IR.ses$medea <- as.factor(IR.ses$medea)
 for(j in 1:length(outcomes_to_fit)){
   for(i in 1:(length(ses_to_fit)-1)){
@@ -353,9 +351,9 @@ tab_dif <- predicton_periods_ses %>%
 
 tab_ses <- rbind(tab_red, tab_dif)
 
-write.csv(predicton_periods_ses, "Modelling/Results/prediction_periods_ses_red.rev.csv")
-write.csv(tab_ses, "Modelling/Results/ses_red_table.rev.csv")
-save(prediction_ses, file=here("WorkingData", "Prediction_ses_rev.RData"))
+write.csv(predicton_periods_ses, "Results/Modelling/prediction_periods_ses_red.csv")
+write.csv(tab_ses, "Results/Modelling/ses_red_table.csv")
+save(prediction_ses, file=here("5_Results", "Modelling", "Prediction_ses.RData"))
 
 rm(IR.ses,models.ses, models.ses_period, models.ses_post, models.ses_pred, models.ses_total, pred,
    predicton_periods_ses, tab, working.nb, ses_to_fit, outcomes_to_fit, end_mod, i, j, y)
@@ -414,7 +412,7 @@ overall_Breast <- prediction_overall %>% filter(outcome=="Breast")%>%
   geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
   scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
   
-  scale_x_date(date_labels = "%b %Y", date_breaks = "3 month", limits= c(as.Date("2017-01-01"),as.Date("2021-03-01")),expand=c(0.005,0.005))+
+  scale_x_date(date_labels = "%b %Y", date_breaks = "3 month", limits= c(as.Date("2018-01-01"),as.Date("2022-06-01")),expand=c(0.005,0.005))+
   theme_bw()+
   theme(axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
@@ -442,7 +440,7 @@ overall_Colorectal <- prediction_overall %>% filter(outcome=="Colorectal")%>%
   geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
   scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
   
-  scale_x_date(date_labels = "%b %Y", date_breaks = "3 month", limits= c(as.Date("2017-01-01"),as.Date("2021-03-01")),expand=c(0.005,0.005))+
+  scale_x_date(date_labels = "%b %Y", date_breaks = "3 month", limits= c(as.Date("2018-01-01"),as.Date("2022-06-01")),expand=c(0.005,0.005))+
   theme_bw()+
   theme(axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
@@ -471,7 +469,7 @@ overall_Lung <- prediction_overall %>% filter(outcome=="Lung")%>%
   geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
   scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
   
-  scale_x_date(date_labels = "%b %Y", date_breaks = "3 month", limits= c(as.Date("2017-01-01"),as.Date("2021-03-01")),expand=c(0.005,0.005))+
+  scale_x_date(date_labels = "%b %Y", date_breaks = "3 month", limits= c(as.Date("2018-01-01"),as.Date("2022-06-01")),expand=c(0.005,0.005))+
   theme_bw()+
   theme(axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
@@ -499,7 +497,7 @@ overall_Prostate <- prediction_overall %>% filter(outcome=="Prostate")%>%
   geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
   scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
   
-  scale_x_date(date_labels = "%b %Y", date_breaks = "3 month", limits= c(as.Date("2017-01-01"),as.Date("2021-03-01")),expand=c(0.005,0.005))+
+  scale_x_date(date_labels = "%b %Y", date_breaks = "3 month", limits= c(as.Date("2018-01-01"),as.Date("2022-06-01")),expand=c(0.005,0.005))+
   theme_bw()+
   theme(axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
@@ -521,7 +519,7 @@ figure_overall<-ggarrange(overall_Breast, overall_Colorectal, overall_Lung, over
                     labels = c("A) Breast Cancer", "B) Colorectal Cancer", "C) Lung Cancer", "D) Prostate Cancer"),font.label = list(size = 12),
                     hjust = c(-0.25,-0.25),
                     common.legend=TRUE, legend="right" )
-rm(overall_AD, overall_MD)
+
 
 
 # Age and gender
@@ -574,7 +572,6 @@ figure_age_gender <-ggarrange(age_gender_AD, age_gender_MD,
                               hjust = c(-0.25,-0.25),
                               common.legend=TRUE, legend="right" )
 
-rm(age_gender_AD, age_gender_MD)
 
 
 
@@ -646,16 +643,16 @@ figure_ses <-ggarrange(plot_ses_AD, plot_ses_MD,
                        hjust = c(-0.25,-0.25),
                        common.legend=TRUE, legend="right" )
 
-rm(plot_ses_AD,plot_ses_MD)
+
 
 # Save
-here("5_results", "Plots", ggsave("Figure1.rev.tiff", figure_overall,dpi=300))
-here("5_results", "Plots", ggsave("Figure2.rev.tiff",figure_age_gender,dpi=300))
-here("5_results", "Plots", ggsave("Figure3.rev.tiff", figure_ses,dpi=300))
+here("5_results", "Plots", ggsave("Figure1.tiff", figure_overall,dpi=300))
+here("5_results", "Plots", ggsave("Figure2.tiff",figure_age_gender,dpi=300))
+here("5_results", "Plots", ggsave("Figure3.tiff", figure_ses,dpi=300))
 
-here("5_results", "Plots", ggsave("Figure1.rev_jpg.jpg", figure_overall,dpi=300))
-here("5_results", "Plots", ggsave("Figure2.rev_jpg.jpg", figure_age_gender,dpi=300))
+here("5_results", "Plots", ggsave("Figure1_jpg.jpg", figure_overall,dpi=300))
+here("5_results", "Plots", ggsave("Figure2_jpg.jpg", figure_age_gender,dpi=300))
 
-here("5_results", "Plots", ggsave("Figure3.rev_jpg.jpg", figure_ses,dpi=300))
+here("5_results", "Plots", ggsave("Figure3_jpg.jpg", figure_ses,dpi=300))
 rm(figure_overall, figure_age_gender,figure_ses, prediction_age.gender,predicion_overall, predicition_ses, 
    end_mod, j, outcomes_to_fit)
