@@ -11,8 +11,8 @@
 # This creates the data for use in validating the model using all pre-covid data
 # Jan 2017 to March 2020
 
-# inc_data <- read.csv(here(file = "2_DataPrep", "Data", "incidence_estimates_cancers.csv"))
-inc_data <- read_csv("2_DataPrep/Data/incidence_estimates_cancers.csv")
+# inc_data <- read.csv(here(file = "1_DataPrep", "Data", "incidence_estimates_cancers.csv"))
+inc_data <- read_csv("1_DataPrep", "Data", input_data)
 
 
 # columns to remove from inc_data
@@ -124,9 +124,9 @@ head(inc_data_final)
 
 
 # save General Pop----
-save(inc_data_final, file = here("2_DataPrep", "Data", "GeneralPop2017_20.RData"))
+save(inc_data_final, file = here("1_DataPrep", "Data", "GeneralPop2017_20.RData"))
 
-write.csv(exclusion_table, file=here("2_DataPrep", "exclusion_table_2017_20.csv"))
+write.csv(exclusion_table, file=here("1_DataPrep", "exclusion_table_2017_20.csv"))
 
 
 

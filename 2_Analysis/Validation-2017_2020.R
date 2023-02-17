@@ -44,8 +44,10 @@ outcomes_to_fit_male<-c("Lung","Colorectal","Prostate")
 outcomes_to_fit_female<-c("Breast","Lung","Colorectal")
 
 # check that there are records in each of the combinations of outcome, age and sex
-save_counts <- count(inc_data_final, outcome, denominator_age_group, denominator_sex, name = "Freq") %>% print(n=Inf)
+save_counts <- count(IR.age_gender, outcome, denominator_age_group, denominator_sex, name = "Freq") %>% print(n=Inf)
+test <- as.data.frame(complete(IR.age_gender, outcome, denominator_age_group, denominator_sex))
 
+test2 <- expand.grid(IR.age_gender$outcome, IR.age_gender$denominator_age_group, IR.age_gender$denominator_sex, stringsAsFactors = TRUE)
 
 #### Overall----------
 Sys.setlocale("LC_TIME", "English")
@@ -92,7 +94,7 @@ for(j in 1:length(outcomes_to_fit)){
 
 val_overall <- bind_rows(models.overall_pred) %>% mutate(ir_pred =pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>%
   mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
-save(val_overall, file=here("5_Results", "Validation","Validation_model.RData"))
+save(val_overall, file=here("4_Results", db.name,  "Validation","Validation_model.RData"))
 
 
 rm(IR.overall, working.nb, models.overall_pred, models.overall_validation, models.overall_validation.fit)
@@ -136,7 +138,7 @@ for(j in 1:length(outcomes_to_fit)){
 
 val_age_gender <- bind_rows(models.age_gender_pred) %>% mutate(ir_pred =pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>% 
   mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
-save(val_age_gender, file=here("5_Results", "Validation", "Validation_age_gender.RData"))
+save(val_age_gender, file=here("4_Results", db.name,  "Validation", "Validation_age_gender.RData"))
 
 rm(IR.age_gender, models.age_gender,models.age_gender_pred, pred,working.nb, age_to_fit, gender_to_fit )
 
@@ -173,7 +175,7 @@ for(j in 1:length(outcomes_to_fit_male)){
 
 val_age_male <- bind_rows(models.age_male_pred) %>% mutate(ir_pred =pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>% 
   mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
-save(val_age_male, file=here("5_Results", "Validation", "Validation_age_male.RData"))
+save(val_age_male, file=here("4_Results", db.name,  "Validation", "Validation_age_male.RData"))
 
 rm(IR.age_male, models.age_male,models.age_male_pred, pred,working.nb, age_to_fit_male)
 
@@ -211,7 +213,7 @@ for(j in 1:length(outcomes_to_fit_female)){
 
 val_age_female <- bind_rows(models.age_female_pred) %>% mutate(ir_pred =pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>% 
   mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
-save(val_age_female, file=here("5_Results", "Validation", "Validation_age_female.RData"))
+save(val_age_female, file=here("4_Results", db.name,  "Validation", "Validation_age_female.RData"))
 
 rm(IR.age_female, models.age_female,models.age_female_pred, pred,working.nb, age_to_fit_female)
 
@@ -245,7 +247,7 @@ for(j in 1:length(outcomes_to_fit)){
 
 val_ses <- bind_rows(models.ses_pred) %>% mutate(ir_pred =pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months)%>% 
   mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
-save(val_ses, file=here("5_Results", "Validation", "Validation_ses.RData"))
+save(val_ses, file=here("4_Results", db.name,  "Validation", "Validation_ses.RData"))
 
 rm(IR.ses, models.ses,models.ses_pred, pred,working.nb, ses_to_fit,
    end_mod,end_pred, i,j,outcomes_to_fit,y)
@@ -378,16 +380,16 @@ figure_overall<-ggarrange(overall_Breast, overall_Colorectal, overall_Lung, over
 
 
 
-# Age and gender
+## Plots stratified by Age and gender
 # Breast #  this returns all NAs so something is not right here with the class of the variables
-prediction_age.gender$denominator_sex <- factor(prediction_age.gender$denominator_sex, levels=rev(levels(prediction_age.gender$denominator_sex)))
-levels(prediction_age.gender$denominator_sex) <- c("Female", "Male", "Both")
-levels(prediction_age.gender$denominator_age_group) <- c("40;59", "60;79", "0;150", "80;150")
+val_age_female$denominator_sex <- factor(val_age_female$denominator_sex, levels=rev(levels(val_age_female$denominator_sex)))
+levels(val_age_female$denominator_sex) <- c("Female", "Male", "Both")
+levels(val_age_female$denominator_age_group) <- c("40;59", "60;79", "0;150", "80;150")
 
-age_gender_Breast <- prediction_age.gender  %>% 
+age_female_Breast <- val_age_female  %>% 
   filter(outcome=="Breast") %>% 
   ggplot()+
-  facet_grid(denominator_sex~denominator_age_group,scales="free")+
+  facet_wrap(val_age_female$denominator_age_group,scales="free")+
   geom_point(aes(Date,ir_m, colour= "Observed"))+
   geom_line(aes(Date,ir_m,colour= "Observed"))+
   
@@ -405,12 +407,10 @@ age_gender_Breast <- prediction_age.gender  %>%
 
 
 
-age_gender_Breast <-age_gender_Breast+ 
+age_female_Breast <-age_female_Breast+ 
   theme(axis.text.x = element_text(angle=90),
         axis.title.y = element_text(size = 9),
         plot.margin=grid::unit(c(1,0.5,0,1), "cm") )+
-  
-  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
   geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
   ylab("Incidence rate per 100,000 person-months")+
   xlab("")
@@ -418,6 +418,86 @@ age_gender_Breast <-age_gender_Breast+
 
 
 ## ADD ALL OTHER PLOTS FOR THE OTHER CANCERS STRATIFIED BY AGE AND SEX HERE TOO WHEN THE ABOVE IS CORRECT
+
+# Males
+#Colorectal
+
+val_age_male$denominator_sex <- factor(val_age_male$denominator_sex, levels=rev(levels(val_age_male$denominator_sex)))
+levels(val_age_male$denominator_sex) <- c("Female", "Male", "Both")
+levels(val_age_male$denominator_age_group) <- c("40;59", "60;79", "0;150", "80;150")
+
+val_age_male$denominator_age_group <- as.factor(val_age_male$denominator_age_group)
+
+age_male_colorectal <- val_age_male  %>% 
+  filter(outcome=="Colorectal") %>% 
+  ggplot()+
+  facet_grid(col = vars(val_age_male$denominator_age_group))+
+  geom_point(aes(Date,ir_m, colour= "Observed"))+
+  geom_line(aes(Date,ir_m,colour= "Observed"))+
+  
+  geom_point(aes(Date,ir_pred,colour= "Expected"))+
+  geom_line(aes(Date,ir_pred,colour= "Expected"))+
+  geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
+  scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
+  
+  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+  )
+
+age_male_colorectal <-age_male_colorectal+ 
+  theme(axis.text.x = element_text(angle=90),
+        axis.title.y = element_text(size = 9),
+        plot.margin=grid::unit(c(1,0.5,0,1), "cm") )+
+  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
+  ylab("Incidence rate per 100,000 person-months")+
+  xlab("")
+
+age_male_colorectal
+
+
+
+
+# Males
+# Lung
+
+val_age_male$denominator_sex <- factor(val_age_male$denominator_sex, levels=rev(levels(val_age_male$denominator_sex)))
+levels(val_age_male$denominator_sex) <- c("Female", "Male", "Both")
+levels(val_age_male$denominator_age_group) <- c("40;59", "60;79", "0;150", "80;150")
+
+val_age_male$denominator_age_group <- as.factor(val_age_male$denominator_age_group)
+
+age_male_lung <- val_age_male  %>% 
+  filter(outcome=="Lung") %>% 
+  ggplot()+
+  facet_grid(col = vars(val_age_male$denominator_age_group))+
+  geom_point(aes(Date,ir_m, colour= "Observed"))+
+  geom_line(aes(Date,ir_m,colour= "Observed"))+
+  
+  geom_point(aes(Date,ir_pred,colour= "Expected"))+
+  geom_line(aes(Date,ir_pred,colour= "Expected"))+
+  geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
+  scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
+  
+  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+  )
+
+age_male_lung <-age_male_lung+ 
+  theme(axis.text.x = element_text(angle=90),
+        axis.title.y = element_text(size = 9),
+        plot.margin=grid::unit(c(1,0.5,0,1), "cm") )+
+  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
+  ylab("Incidence rate per 100,000 person-months")+
+  xlab("")
+
+age_male_lung
+
 
 
 
@@ -471,9 +551,9 @@ figure_ses <-ggarrange(plot_ses_Breast, plot_ses_Colorectal, plot_ses_Lung, plot
 
 
 # Save
-ggsave(here("5_Results","Plots", "Figure_1_overall.jpg"), figure_overall, dpi=300, scale = 2)
-ggsave(here("5_Results","Plots", "Figure_2_age_gender.jpg"), figure_age_gender, dpi=300, scale = 2)
-ggsave(here("5_Results","Plots", "Figure_3_ses.jpg"), figure_ses, dpi=300, scale = 2)
+ggsave(here("4_Results", db.name, "Plots", "Figure_1_overall.jpg"), figure_overall, dpi=300, scale = 2)
+ggsave(here("4_Results", db.name, "Plots", "Figure_2_age_gender.jpg"), figure_age_gender, dpi=300, scale = 2)
+ggsave(here("4_Results", db.name, "Plots", "Figure_3_ses.jpg"), figure_ses, dpi=300, scale = 2)
 
 
 rm(figure_overall, figure_age_gender,figure_ses, prediction_age.gender,predicion_overall, predicition_ses, 

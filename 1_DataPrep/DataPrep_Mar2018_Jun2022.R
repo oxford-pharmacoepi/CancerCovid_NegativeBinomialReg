@@ -11,8 +11,8 @@
 # This creates the data for use in modelling using data from Jan 2018 and extrapolating
 # Jan 2019 to end of data availability at June 2022
 
-# inc_data <- read.csv(here(file = "2_DataPrep", "Data", "incidence_estimates_cancers.csv"))
-inc_data <- read_csv("2_DataPrep/Data/incidence_estimates_cancers.csv")
+# inc_data <- read.csv(here(file = "1_DataPrep", "Data", "incidence_estimates_cancers.csv"))
+inc_data <- read_csv("1_DataPrep/Data/incidence_estimates_cancers.csv")
 
 
 # columns to remove from inc_data
@@ -124,9 +124,9 @@ head(inc_data_final)
 
 
 # save General Pop----
-save(inc_data_final, file = here("2_DataPrep", "Data", "GeneralPop2018_22.RData"))
+save(inc_data_final, file = here("1_DataPrep", "Data", "GeneralPop2018_22.RData"))
 
-write.csv(exclusion_table, file=here("2_DataPrep", "exclusion_table_2018_22.csv"))
+write.csv(exclusion_table, file=here("1_DataPrep", "exclusion_table_2018_22.csv"))
 
 
 
