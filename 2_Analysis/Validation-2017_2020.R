@@ -31,7 +31,7 @@ library(ggpubr)
 ##Fit to 01/01/2017- 01/02/2019
 ##Forecast 01/03/2019 - 01/03/2020
 
-load(here("2_DataPrep", "Data", "GeneralPop2017_20.RData"))
+load(here("1_DataPrep", "Data", "GeneralPop2017_20.RData"))
 
 
 IR.overall <- inc_data_final %>% mutate(Month1 =paste(1,month, year, sep ="-")) %>% filter(denominator_cohort_id ==1)
@@ -45,9 +45,7 @@ outcomes_to_fit_female<-c("Breast","Lung","Colorectal")
 
 # check that there are records in each of the combinations of outcome, age and sex
 save_counts <- count(IR.age_gender, outcome, denominator_age_group, denominator_sex, name = "Freq") %>% print(n=Inf)
-test <- as.data.frame(complete(IR.age_gender, outcome, denominator_age_group, denominator_sex))
 
-test2 <- expand.grid(IR.age_gender$outcome, IR.age_gender$denominator_age_group, IR.age_gender$denominator_sex, stringsAsFactors = TRUE)
 
 #### Overall----------
 Sys.setlocale("LC_TIME", "English")
@@ -115,13 +113,19 @@ end_pred <- 38 #month.since.start= Feb 2020
 # I THINK THIS IS BECAUSE THERE ARE SOME CANCERS THAT ARE ONLY IN MALES AND SOME ONLY IN FEMALES, SO THERE ARE SOME LEVELS WHERE SEX ONLY HAS ONE FACTOR WITH DATA
 # AND SO THE MODEL DOES NOT RUN
 
+
 for(j in 1:length(outcomes_to_fit)){
   for(i in 1:length(age_to_fit)){
     for(y in 1:length(gender_to_fit)){
-      working.nb <- glm.nb(events ~ as.factor(month)+months.since.start,data=IR.age_gender%>% filter(months.since.start<= end_mod) %>% filter(denominator_sex==gender_to_fit[y]) %>% 
-                             filter(denominator_age_group==age_to_fit[i])%>% filter(outcome==outcomes_to_fit[j]))
+      if (nrow(IR.age_gender%>% filter(months.since.start<= end_mod) %>% filter(denominator_sex==gender_to_fit[y]) %>% 
+               filter(denominator_age_group==age_to_fit[i])%>% filter(outcome==outcomes_to_fit[j])) == 0)
+        next  # this should filter out combinations where there is no data and skip to the next iteration, but it doesn't 
       
-      models.age_gender[[paste0("m.",age_to_fit[i],gender_to_fit[y],".nb")]]  <- working.nb
+        working.nb <- glm.nb(events ~ as.factor(month), months.since.start,data=IR.age_gender%>% filter(months.since.start<= end_mod) %>% filter(denominator_sex==gender_to_fit[y]) %>% 
+                             filter(denominator_age_group==age_to_fit[i])%>% filter(outcome==outcomes_to_fit[j]))
+
+
+    models.age_gender[[paste0("m.",age_to_fit[i],gender_to_fit[y],".nb")]]  <- working.nb
       pred <-predict(working.nb, newdata=IR.age_gender%>% filter(months.since.start<= end_pred) %>% filter(denominator_sex==gender_to_fit[y]) %>% filter(denominator_age_group==age_to_fit[i])%>%
                        filter(outcome==outcomes_to_fit[j]),type="response", se.fit = TRUE, interval= "prediction", level=0.95)
       
@@ -372,7 +376,7 @@ overall_Prostate <- overall_Prostate +
   xlab("")#+
 #ggtitle("Expected vs. Observed incidence rates for prostate cancer from validation model")
 
-figure_overall<-ggarrange(overall_Breast, overall_Colorectal, overall_Lung, overall_Prostate, 
+figure_Validation_overall<-ggarrange(overall_Breast, overall_Colorectal, overall_Lung, overall_Prostate, 
                           align="hv", ncol=2, nrow=2,
                           labels = c("A) Breast Cancer", "B) Colorectal Cancer", "C) Lung Cancer", "D) Prostate Cancer"),font.label = list(size = 12),
                           hjust = c(-0.25,-0.25),
@@ -551,7 +555,7 @@ figure_ses <-ggarrange(plot_ses_Breast, plot_ses_Colorectal, plot_ses_Lung, plot
 
 
 # Save
-ggsave(here("4_Results", db.name, "Plots", "Figure_1_overall.jpg"), figure_overall, dpi=300, scale = 2)
+ggsave(here("4_Results", db.name, "Plots", "Figure_1_validation_overall.jpg"), figure_Validation_overall, dpi=300, scale = 2, width = 12, height = 9)
 ggsave(here("4_Results", db.name, "Plots", "Figure_2_age_gender.jpg"), figure_age_gender, dpi=300, scale = 2)
 ggsave(here("4_Results", db.name, "Plots", "Figure_3_ses.jpg"), figure_ses, dpi=300, scale = 2)
 

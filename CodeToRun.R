@@ -14,12 +14,10 @@
 ## ----------------------------- LOAD PACKAGES ------------------------------ ##
 
 # load r packages
-library(DatabaseConnector)
 library(here)
 library(lubridate)
 library(stringr)
 library(ggplot2)
-library(DBI)
 library(dbplyr)
 library(dplyr)
 library(tidyr)
@@ -27,7 +25,6 @@ library(tableone)
 library(scales)
 library(forcats)
 library(epiR)
-library(RPostgreSQL)
 library(foreign)
 library(MASS)
 library(tsibble)
@@ -37,8 +34,8 @@ library(magrittr)
 library(ciTools)
 library(readr)
 library(log4r)
-library(CirceR)
-library(CDMConnector)
+library(ggpubr)
+
 
 
 # database metadata and connection details -----
@@ -51,9 +48,9 @@ input_data <- "... .csv"
 
 # Set output folder locations -----
 # the paths to the folders where the results from this analysis will be saved
-output.folder1<-here("Results", db.name, "Validation")
-output.folder2<-here("Results", db.name, "Modelling")
-output.folder3<-here("Results", db.name, "Plots")
+output.folder1<-here("4_Results", db.name, "Validation")
+output.folder2<-here("4_Results", db.name, "Modelling")
+output.folder3<-here("4_Results", db.name, "Plots")
 
 
 # Run the study ------

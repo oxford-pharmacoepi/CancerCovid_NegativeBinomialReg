@@ -127,8 +127,8 @@ tab_dif <- predicton_overall_periods %>%
 
 tab1 <-rbind(tab_red, tab_dif)
 
-write.csv(tab1, "4_Results/Modelling/overall_table.csv")
-write.csv(tab, "4_Results/Modelling/overall_red.csv")
+write.csv(tab1, file=here("4_Results", db.name, "Modelling", "overall_table.csv"))
+write.csv(tab, file=here("4_Results", db.name, "Modelling", "overall_red.csv"))
 save(prediction_overall, file=here("4_Results", db.name,  "Modelling", "Prediction_Overall_2018-2022.RData"))
 rm(IR.overall,models, models_period, models_post, models_pred, models_total, pred,
    prediction_overall_periods, tab, working.nb, predicton_overall_periods)
@@ -253,11 +253,11 @@ tab_dif <- tab_gender0 %>%
 tab_gender <-rbind(tab_gender, tab_dif)
 
 
-write.csv(tab_age.gender, "4_Results/Modelling/age_gender_red_table.csv")
-write.csv(tab_gender, "4_Results/Modelling/gender_red_table.csv")
-write.csv(tab_age.gender, "4_Results/Modelling/age_gender_red_table.csv")
-write.csv(tab, "4_Results/Modelling/age.gender_red.csv")
-write.csv(tab_gender0, "4_Results/Modelling/gender_red.csv")
+write.csv(tab_age.gender, file=here("4_Results", db.name, "Modelling", "age_gender_red_table.csv"))
+write.csv(tab_gender, file=here("4_Results", db.name, "Modelling", "gender_red_table.csv"))
+write.csv(tab_age.gender, file=here("4_Results", db.name, "Modelling", "age_gender_red_table.csv"))
+write.csv(tab, file=here("4_Results", db.name, "Modelling", "age.gender_red.csv"))
+write.csv(tab_gender0, file=here("4_Results", db.name, "Modelling", "gender_red.csv"))
 save(prediction_age.gender, file=here("4_Results", db.name,  "Modelling", "Prediction_age.gender.RData"))
 
 
@@ -358,7 +358,7 @@ save(prediction_ses, file=here("4_Results", db.name,  "Modelling", "Prediction_s
 rm(IR.ses,models.ses, models.ses_period, models.ses_post, models.ses_pred, models.ses_total, pred,
    predicton_periods_ses, tab, working.nb, ses_to_fit, outcomes_to_fit, end_mod, i, j, y)
 
-###TABLE---------
+###TABLE--------- run this when we have the full data
 tab1 <- tab1 %>% mutate(strata="overall")
 tab_gender <-tab_gender %>%rename(strata=denominator_sex)
 tab_age.gender1 <-tab_age.gender%>%mutate(strata=paste0(denominator_age_group, ",", denominator_sex))%>%
@@ -402,7 +402,7 @@ write.csv(table1, "4_Results", db.name, "Modelling", "Table_Results.rev.csv")
 # overall
 # Breast
 
-overall_Breast <- prediction_overall %>% filter(outcome=="Breast")%>%
+overall_prediction_Breast <- prediction_overall %>% filter(outcome=="Breast")%>%
   ggplot()+
   geom_point(aes(Date,ir_m, colour= "Observed"))+
   geom_line(aes(Date,ir_m,colour= "Observed"))+
@@ -420,7 +420,7 @@ overall_Breast <- prediction_overall %>% filter(outcome=="Breast")%>%
         panel.border = element_blank(),
         panel.background = element_blank())
 
-overall_Breast <- overall_Breast + 
+overall_prediction_Breast <- overall_Breast + 
   theme(axis.text.x = element_text(angle=90), 
         axis.title.y = element_text(size = 9),    
         plot.margin=grid::unit(c(1,1,0,1), "cm"))+
@@ -430,7 +430,7 @@ overall_Breast <- overall_Breast +
   ggtitle("Incidence rates for breast cancer before and after COVID-19 lockdown")
 
 # Colorectal
-overall_Colorectal <- prediction_overall %>% filter(outcome=="Colorectal")%>%
+overall_prediction_Colorectal <- prediction_overall %>% filter(outcome=="Colorectal")%>%
   ggplot()+
   geom_point(aes(Date,ir_m, colour= "Observed"))+
   geom_line(aes(Date,ir_m,colour= "Observed"))+
@@ -448,7 +448,7 @@ overall_Colorectal <- prediction_overall %>% filter(outcome=="Colorectal")%>%
         panel.border = element_blank(),
         panel.background = element_blank())
 
-overall_Colorectal <- overall_Colorectal + 
+overall_prediction_Colorectal <- overall_Colorectal + 
   theme(axis.text.x = element_text(angle=90), 
         axis.title.y = element_text(size = 9),    
         plot.margin=grid::unit(c(1,1,0,1), "cm"))+
@@ -459,7 +459,7 @@ overall_Colorectal <- overall_Colorectal +
 
 
 # Lung
-overall_Lung <- prediction_overall %>% filter(outcome=="Lung")%>%
+overall_prediction_Lung <- prediction_overall %>% filter(outcome=="Lung")%>%
   ggplot()+
   geom_point(aes(Date,ir_m, colour= "Observed"))+
   geom_line(aes(Date,ir_m,colour= "Observed"))+
@@ -477,7 +477,7 @@ overall_Lung <- prediction_overall %>% filter(outcome=="Lung")%>%
         panel.border = element_blank(),
         panel.background = element_blank())
 
-overall_Lung <- overall_Lung + 
+overall_prediction_Lung <- overall_Lung + 
   theme(axis.text.x = element_text(angle=90), 
         axis.title.y = element_text(size = 9),    
         plot.margin=grid::unit(c(1,1,0,1), "cm"))+
@@ -487,7 +487,7 @@ overall_Lung <- overall_Lung +
   ggtitle("Incidence rates for Lung cancer before and after COVID-19 lockdown")
 
 # Prostate
-overall_Prostate <- prediction_overall %>% filter(outcome=="Prostate")%>%
+overall_prediction_Prostate <- prediction_overall %>% filter(outcome=="Prostate")%>%
   ggplot()+
   geom_point(aes(Date,ir_m, colour= "Observed"))+
   geom_line(aes(Date,ir_m,colour= "Observed"))+
@@ -505,7 +505,7 @@ overall_Prostate <- prediction_overall %>% filter(outcome=="Prostate")%>%
         panel.border = element_blank(),
         panel.background = element_blank())
 
-overall_Prostate <- overall_Prostate + 
+overall_prediction_Prostate <- overall_Prostate + 
   theme(axis.text.x = element_text(angle=90), 
         axis.title.y = element_text(size = 9),    
         plot.margin=grid::unit(c(1,1,0,1), "cm"))+
@@ -514,7 +514,7 @@ overall_Prostate <- overall_Prostate +
   xlab("")+
   ggtitle("Incidence rates for prostate cancer before and after COVID-19 lockdown")
 
-figure_overall<-ggarrange(overall_Breast, overall_Colorectal, overall_Lung, overall_Prostate, 
+figure_prediction_overall<-ggarrange(overall_prediction_Breast, overall_prediction_Colorectal, overall_prediction_Lung, overall_prediction_Prostate, 
                     align="hv", ncol=2, nrow=2,
                     labels = c("A) Breast Cancer", "B) Colorectal Cancer", "C) Lung Cancer", "D) Prostate Cancer"),font.label = list(size = 12),
                     hjust = c(-0.25,-0.25),
