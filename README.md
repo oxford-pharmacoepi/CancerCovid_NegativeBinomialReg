@@ -1,5 +1,5 @@
 # NegativeBinomialReg
-This is exploratory code to run a negative binomial regression of incidence rates of cancer diagnoses for the Cncer Covid OPTIMA project.
+This is exploratory code to run a negative binomial regression of incidence rates of cancer diagnoses for the Cancer Covid OPTIMA project.
 
 The code firstly prepares your data. YOur data should be one .csv file exported from the IncidencePrevalence package containing the incidence estimates for your study, inserted into the 'Data' folder in this project, located in 1_DataPrep.
 
