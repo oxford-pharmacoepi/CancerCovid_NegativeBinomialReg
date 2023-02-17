@@ -43,4 +43,5 @@ CodeToRun-local.R
 *.RData
 *.csv
 
+*Results
 
