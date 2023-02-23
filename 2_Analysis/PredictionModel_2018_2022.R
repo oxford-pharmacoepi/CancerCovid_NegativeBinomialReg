@@ -135,7 +135,8 @@ rm(IR.overall,models, models_period, models_post, models_pred, models_total, pre
 
 
 
-####Age and gender-------
+####Age and gender------- RUN THIS WHEN WE HAVE THE FULL DATASET. IT MIGHT BE THAT THE TRIPLE LOOP WON'T RUN AND
+# EACH SEX AND CANCER WILL NEED TO BE RUN SEPARATELY
 age_to_fit <- IR.age_gender%>%  ungroup() %>%dplyr::select("denominator_age_group")%>% distinct()%>%pull()
 gender_to_fit <-  IR.age_gender %>% ungroup() %>%dplyr::select("denominator_sex")%>% distinct()%>%pull()
 models.age_gender <- list()
@@ -531,7 +532,7 @@ levels(prediction_age.gender$denominator_age_group) <- c("40;59", "60;79", "0;15
 age_gender_Breast <- prediction_age.gender  %>% 
   filter(outcome=="Breast") %>% 
   ggplot()+
-  #facet_grid(denominator_sex~denominator_age_group,scales="free")+
+ facet_grid(denominator_sex~denominator_age_group,scales="free")+
   geom_point(aes(Date,ir_m, colour= "Observed"))+
   geom_line(aes(Date,ir_m,colour= "Observed"))+
   
