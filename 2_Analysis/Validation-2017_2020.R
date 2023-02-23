@@ -459,18 +459,16 @@ figure_Validation_overall<-ggarrange(overall_Breast, overall_Colorectal, overall
 # Save
 ggsave(here("4_Results", db.name, "Plots", "Figure_1_validation_overall.jpg"), figure_Validation_overall, dpi=300, scale = 1, width = 12, height = 9)
 
-# UP TO HERE
 
-## Plots stratified by Age and gender
-# Breast #  this returns all NAs so something is not right here with the class of the variables
-val_age_female$denominator_sex <- factor(val_age_female$denominator_sex, levels=rev(levels(val_age_female$denominator_sex)))
-levels(val_age_female$denominator_sex) <- c("Female", "Male", "Both")
-levels(val_age_female$denominator_age_group) <- c("40;59", "60;79", "0;150", "80;150")
 
-age_female_Breast <- val_age_female  %>% 
+## PLOTS STRATIFIED BY AGE AND GENDER
+
+# Breast # 
+
+age_female_Breast <- val_age_sex  %>% 
   filter(outcome=="Breast") %>% 
   ggplot()+
-  facet_wrap(val_age_female$denominator_age_group,scales="free")+
+  facet_grid(denominator_age_group~denominator_sex,scales="free")+
   geom_point(aes(Date,ir_m, colour= "Observed"))+
   geom_line(aes(Date,ir_m,colour= "Observed"))+
   
@@ -485,8 +483,6 @@ age_female_Breast <- val_age_female  %>%
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()
   )
-
-
 
 age_female_Breast <-age_female_Breast+ 
   theme(axis.text.x = element_text(angle=90),
@@ -496,23 +492,12 @@ age_female_Breast <-age_female_Breast+
   ylab("Incidence rate per 100,000 person-months")+
   xlab("")
 
+# COLORECTAL # 
 
-
-## PLOTS STRATIFIED BY AGE AND SEX
-
-# Males
-#Colorectal
-
-val_age_male$denominator_sex <- factor(val_age_male$denominator_sex, levels=rev(levels(val_age_male$denominator_sex)))
-levels(val_age_male$denominator_sex) <- c("Female", "Male", "Both")
-levels(val_age_male$denominator_age_group) <- c("40;59", "60;79", "0;150", "80;150")
-
-val_age_male$denominator_age_group <- as.factor(val_age_male$denominator_age_group)
-
-age_male_colorectal <- val_age_male  %>% 
+age_sex_Colorectal <- val_age_sex  %>% 
   filter(outcome=="Colorectal") %>% 
   ggplot()+
-  facet_grid(col = vars(val_age_male$denominator_age_group))+
+  facet_grid(denominator_age_group~denominator_sex,scales="free")+
   geom_point(aes(Date,ir_m, colour= "Observed"))+
   geom_line(aes(Date,ir_m,colour= "Observed"))+
   
@@ -528,7 +513,7 @@ age_male_colorectal <- val_age_male  %>%
         panel.grid.minor = element_blank()
   )
 
-age_male_colorectal <-age_male_colorectal+ 
+age_sex_Colorectal <-age_sex_Colorectal+ 
   theme(axis.text.x = element_text(angle=90),
         axis.title.y = element_text(size = 9),
         plot.margin=grid::unit(c(1,0.5,0,1), "cm") )+
@@ -536,24 +521,12 @@ age_male_colorectal <-age_male_colorectal+
   ylab("Incidence rate per 100,000 person-months")+
   xlab("")
 
-age_male_colorectal
+# LUNG # 
 
-
-
-
-# Males
-# Lung
-
-val_age_male$denominator_sex <- factor(val_age_male$denominator_sex, levels=rev(levels(val_age_male$denominator_sex)))
-levels(val_age_male$denominator_sex) <- c("Female", "Male", "Both")
-levels(val_age_male$denominator_age_group) <- c("40;59", "60;79", "0;150", "80;150")
-
-val_age_male$denominator_age_group <- as.factor(val_age_male$denominator_age_group)
-
-age_male_lung <- val_age_male  %>% 
+age_sex_Lung <- val_age_sex  %>% 
   filter(outcome=="Lung") %>% 
   ggplot()+
-  facet_grid(col = vars(val_age_male$denominator_age_group))+
+  facet_grid(denominator_age_group~denominator_sex,scales="free")+
   geom_point(aes(Date,ir_m, colour= "Observed"))+
   geom_line(aes(Date,ir_m,colour= "Observed"))+
   
@@ -569,7 +542,7 @@ age_male_lung <- val_age_male  %>%
         panel.grid.minor = element_blank()
   )
 
-age_male_lung <-age_male_lung+ 
+age_sex_Lung <-age_sex_Lung+ 
   theme(axis.text.x = element_text(angle=90),
         axis.title.y = element_text(size = 9),
         plot.margin=grid::unit(c(1,0.5,0,1), "cm") )+
@@ -577,19 +550,44 @@ age_male_lung <-age_male_lung+
   ylab("Incidence rate per 100,000 person-months")+
   xlab("")
 
-age_male_lung
+
+# PROSTATE # 
+
+age_male_Prostate <- val_age_sex  %>% 
+  filter(outcome=="Prostate") %>% 
+  ggplot()+
+  facet_grid(denominator_age_group~denominator_sex,scales="free")+
+  geom_point(aes(Date,ir_m, colour= "Observed"))+
+  geom_line(aes(Date,ir_m,colour= "Observed"))+
+  
+  geom_point(aes(Date,ir_pred,colour= "Expected"))+
+  geom_line(aes(Date,ir_pred,colour= "Expected"))+
+  geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
+  scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
+  
+  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+  )
+
+age_male_Prostate <-age_male_Prostate+ 
+  theme(axis.text.x = element_text(angle=90),
+        axis.title.y = element_text(size = 9),
+        plot.margin=grid::unit(c(1,0.5,0,1), "cm") )+
+  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
+  ylab("Incidence rate per 100,000 person-months")+
+  xlab("")
 
 
-
-
-figure_age_gender <-ggarrange(age_gender_Breast, age_gender_Colorectal, age_gender_Lung, age_gender_Prostate,
+figure_age_gender <-ggarrange(age_female_Breast, age_sex_Colorectal, age_sex_Lung, age_male_Prostate,
                               align="hv", ncol=2, nrow=2,
                               labels = c("A) Breast Cancer", "B) Colorectal Cancer", "C) Lung Cancer", "D) Prostate Cancer"),font.label = list(size = 12),
                               hjust = c(-0.25,-0.25),
                               common.legend=TRUE, legend="right" )
 
-
-
+ggsave(here("4_Results", db.name, "Plots", "Figure_2_validation_age_gender.jpg"), figure_age_gender, dpi=300, scale = 1.25,  width = 16, height = 10)
 
 
 # add this when we have the SES data
@@ -634,7 +632,6 @@ figure_ses <-ggarrange(plot_ses_Breast, plot_ses_Colorectal, plot_ses_Lung, plot
 
 
 
-ggsave(here("4_Results", db.name, "Plots", "Figure_2_age_gender.jpg"), figure_age_gender, dpi=300, scale = 2)
 ggsave(here("4_Results", db.name, "Plots", "Figure_3_ses.jpg"), figure_ses, dpi=300, scale = 2)
 
 
