@@ -69,14 +69,18 @@ end.date.month.year<- format(as.Date(end.date), "%m-%Y")
 n.months<-lubridate::interval(ymd(start.date),ymd(end.date)) %/% months(1)
 
 
-# create months since start of the study for each of the estimates
 
+#  To account for possible seasonality and linear trends, we will fit calendar month as a categorical 
+#  variable and time as a continuous variable. The number of months since the start of the study is considered as 
+#  the unit of measurement for time
+
+# create months since start of the study for each of the estimates to use as a time variable
 inc_data <- inc_data %>% mutate(date_formatted = as.Date(dmy(inc_data$incidence_start_date)))
 class(inc_data$date_formatted)
 
 
 
-# test function for getting number of months since start ----------------------
+#  function for getting number of months since start ----------------------
 
 months.since.start.working <- function(d) { lt <- as.POSIXlt(as.Date(d, origin = "1900-01-01"))
                         lt$year*12 + lt$mon}

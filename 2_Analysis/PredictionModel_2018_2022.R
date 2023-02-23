@@ -36,7 +36,7 @@ load(here("1_DataPrep", "Data", "GeneralPop2018_22.RData"))
 
 IR.overall <- inc_data_final %>% mutate(Month1 =paste(1,month, year, sep ="-")) %>% filter(denominator_cohort_id ==1)
 IR.age_gender <- inc_data_final %>%  mutate(Month1 =paste(1,month, year, sep ="-"))
-#IR.ses <- IR.ses %>% mutate(Month1 =paste(1,month, year, sep ="-")) %>% filter(outcome =="AnxietyDisorders"| outcome=="MajorDepressiveDisorder")
+#IR.ses <- IR.ses %>% mutate(Month1 =paste(1,month, year, sep ="-")) 
 outcomes_to_fit<- inc_data_final %>% dplyr::select("outcome")%>% distinct()%>%pull()
 
 
@@ -77,7 +77,7 @@ for(j in 1:length(outcomes_to_fit)){
   models_pred[[paste0("m.",outcomes_to_fit[j], ".nb")]] <- cbind(IR.overall %>%  filter(outcome==outcomes_to_fit[j]), data.frame(est=as.character(pred$fit), model="nb")) %>%  
     add_pi(working.nb, names = c("lwr", "upr"), alpha = 0.05)  %>%  
     mutate(ir_pred=pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>%
-    mutate(red = (100*(pred-events)/pred)) %>%
+    mutate(red = (100*(pred-events)/pred)) %>% # this is the proportion of events reduced in the predictive modelling
     mutate(red_lwr = (100*(lwr-events)/lwr))%>%
     mutate(red_upr = (100*(upr-events)/upr))
   models_period[[paste0("m.",outcomes_to_fit[j], ".nb")]] <-models_pred[[paste0("m.",outcomes_to_fit[j], ".nb")]] %>% 

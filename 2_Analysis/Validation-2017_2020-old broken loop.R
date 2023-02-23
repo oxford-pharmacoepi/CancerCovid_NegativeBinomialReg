@@ -3,7 +3,8 @@
 #                            FOR CANCER/COVID STUDY                            #
 #                               VALIDATION MODEL                               #
 #                                Nicola Barclay                                #
-#                                 23-02-2023                                   #
+#                                 16-02-2023                                   #
+# THIS SCRIPT CONTAINS OLD CODE THAT BROKE - FOR REFERENCE                     #
 # ============================================================================ #
 
 
@@ -29,25 +30,39 @@ library(ggpubr)
 ###### Observed vs expected (Negative Binomial Regression models)
 ###Forecast:
 ##Fit to 01/01/2017- 01/02/2019
-##Forecast 01/03/2019 - 01/02/2020
+##Forecast 01/03/2019 - 01/03/2020
 
 load(here("1_DataPrep", "Data", "GeneralPop2017_20.RData"))
-Sys.setlocale("LC_TIME", "English")
 
-# check that there are records in each of the combinations of outcome, age and sex. If there are some combinations with no rows, then may need to run these separately
+
+IR.overall <- inc_data_final %>% mutate(Month1 =paste(1,month, year, sep ="-")) %>% filter(denominator_cohort_id ==1)
+IR.age_gender <- inc_data_final %>%  mutate(Month1 =paste(1,month, year, sep ="-"))  %>% filter(denominator_sex !="Both")
+
+
+#IR.ses <- IR.ses %>% mutate(Month1 =paste(1,month, year, sep ="-"))
+outcomes_to_fit<- inc_data_final %>% dplyr::select("outcome")%>% distinct()%>%pull()
+
+
+
+# check that there are records in each of the combinations of outcome, age and sex
 save_counts <- count(IR.age_gender, outcome, denominator_age_group, denominator_sex, name = "Freq") %>% print(n=Inf)
 
 
 #### Overall----------
-
-IR.overall <- inc_data_final %>% mutate(Month1 =paste(1,month, year, sep ="-")) %>% filter(denominator_cohort_id ==1)
+Sys.setlocale("LC_TIME", "English")
 IR.overall$Date <- NA
 IR.overall$Date <- dmy(IR.overall$Month1)
 IR.overall$Month1 <- NULL
+IR.age_gender$Date <- NA
+IR.age_gender$Date <- dmy(IR.age_gender$Month1)
+IR.age_gender$Month1 <- NULL
 
-outcomes_to_fit<- inc_data_final %>% dplyr::select("outcome")%>% distinct()%>%pull()
+#IR.ses$Date <- NA
+#IR.ses$Date <- dmy(IR.ses$Month1)
+#IR.ses$Month1 <- NULL
 
 ###### Validation Overall: 
+models.overall_validation <- list()
 models.overall_validation.fit <- list()
 models.overall_pred <- list()
 
@@ -61,15 +76,14 @@ end_pred <- 38 #month.since.start= Feb 2020
 #                iteration limit reached
 #
 # IT IS POSSIBLE THAT THIS IS BECAUSE THE NEGATIVE BINOMIAL METHOD IS BEST WHEN DATA ARE OVERDISPERSED, MY DATA ARE OVERDISPERSED.
-# SO NEGATIVE BINOMIAL IS APPROPRIATE BUT THERE ARE SOME CATEGORY COMBINATIONS THAT ARE NOT, SO IT MIGHT RUN BETTER WITH SOME AS A POISSON.
-# THE OUTCOME HAS 152 ROWS AS WE ONLY PREDICT UP TO FEB 2020
+# SO NEGATIVE BINOMIAL IS APPROPRIATE. THE OUTCOME HAS 152 ROWS AS WE ONLY PREDICT UP TO FEB 2020
 
 for(j in 1:length(outcomes_to_fit)){
   
   # Negative Binomial
   working.nb <- glm.nb(events ~ as.factor(month)+months.since.start,data=IR.overall%>%  
                          filter(outcome==outcomes_to_fit[j]) %>% filter(months.since.start<= end_mod))
-  models.overall_validation.fit[[paste0("m.","overall",outcomes_to_fit[j], ".nb")]] <- working.nb
+  models.overall_validation[[paste0("m.","overall",outcomes_to_fit[j], ".nb")]] <- working.nb
   
   pred <-predict(working.nb, newdata=IR.overall %>% filter(months.since.start<= end_pred)  %>%
                    filter(outcome==outcomes_to_fit[j]),type="response", se.fit = TRUE, interval= "prediction", level=0.95)
@@ -79,47 +93,145 @@ for(j in 1:length(outcomes_to_fit)){
   
 }
 
+
 val_overall <- bind_rows(models.overall_pred) %>% mutate(ir_pred =pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>%
   mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
-
-save(val_overall, file=here("4_Results", db.name,  "Validation","Validation_model_overall_nb.RData"))
-save(models.overall_validation.fit, file=here("4_Results", db.name,  "Validation", "Fit Statistics", "Validation_model_overall_nb_fit.RData"))
-write.csv(val_overall, file=here("4_Results", db.name,  "Validation","Validation_model_overall_nb.csv"))
-
-rm(working.nb, pred, models.overall_pred, models.overall_validation.fit, j)
+save(val_overall, file=here("4_Results", db.name,  "Validation","Validation_model.RData"))
 
 
-# overall with poisson instead of negative binomial
-
-models.overall_validation.fit <- list()
-models.overall_pred <- list()
-
+# with poisson instead of negative binomial
 for(j in 1:length(outcomes_to_fit)){
   
+  # Negative Binomial
   working.p <- glm(events ~ as.factor(month)+months.since.start,data=IR.overall%>%  
                          filter(outcome==outcomes_to_fit[j]) %>% filter(months.since.start<= end_mod), family=poisson)
-  models.overall_validation.fit[[paste0("m.","overall",outcomes_to_fit[j], ".p")]] <- working.p
+  models.overall_validation[[paste0("m.","overall",outcomes_to_fit[j], ".nb")]] <- working.p
   
   pred <-predict(working.p, newdata=IR.overall %>% filter(months.since.start<= end_pred)  %>%
                    filter(outcome==outcomes_to_fit[j]),type="response", se.fit = TRUE, interval= "prediction", level=0.95)
   
-  models.overall_pred[[paste0("m.","overall",outcomes_to_fit[j], ".p")]] <- cbind(IR.overall %>% filter(months.since.start<= end_pred) %>% filter(outcome==outcomes_to_fit[j]),
+  models.overall_pred[[paste0("m.","overall",outcomes_to_fit[j], ".nb")]] <- cbind(IR.overall %>% filter(months.since.start<= end_pred) %>% filter(outcome==outcomes_to_fit[j]),
                                                                                    data.frame(est=as.character(pred$fit), model="poisson")) %>%  add_pi(working.p, names = c("lwr", "upr"), alpha = 0.05)
   
 }
 
+
+
+
 val_overall_p <- bind_rows(models.overall_pred) %>% mutate(ir_pred =pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>%
   mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
-
-save(val_overall, file=here("4_Results", db.name,  "Validation","Validation_model_overall_poisson.RData"))
-save(models.overall_validation.fit, file=here("4_Results", db.name,  "Validation","Fit Statistics", "Validation_model_overall_poisson_fit.RData"))
-write.csv(val_overall, file=here("4_Results", db.name,  "Validation","Validation_model_overall_poisson.csv"))
-
-rm(working.p, pred, models.overall_pred, models.overall_validation.fit, j)
+save(val_overall_p, file=here("4_Results", db.name,  "Validation","Validation_model.RData"))
 
 
+rm(IR.overall, working.nb, models.overall_pred, models.overall_validation, models.overall_validation.fit)
+
+
+###### Validation by age-gender: THIS DOES NOT WORK AS THERE ARE SOME CATEOGRIES THAT HAVE NO ROWS
+
+age_to_fit <- IR.age_gender%>%  ungroup() %>%dplyr::select("denominator_age_group")%>% distinct()%>%pull()
+gender_to_fit <-  IR.age_gender %>% ungroup() %>%dplyr::select("denominator_sex")%>% distinct()%>%pull()
+models.age_gender <- list()
+models.age_gender_pred <- list()
+
+end_mod <- 26 #month.since.start= Feb 2019
+end_pred <- 38 #month.since.start= Feb 2020
+
+
+## - CHECK THIS - FOR SOME REASON THIS ONLY RUNS FOR BREAST CANCER, FEMALES, AGE 80-150, AND DOES NOT CREATE PREDICTIONS FOR THE OTHERS
+# I THINK THIS IS BECAUSE THERE ARE SOME CANCERS THAT ARE ONLY IN MALES AND SOME ONLY IN FEMALES, SO THERE ARE SOME LEVELS WHERE SEX ONLY HAS ONE FACTOR WITH DATA
+# AND SO THE MODEL DOES NOT RUN
+
+
+for(j in 1:length(outcomes_to_fit)){
+  for(i in 1:length(age_to_fit)){
+    for(y in 1:length(gender_to_fit)){
+      if (nrow(IR.age_gender%>% filter(denominator_sex==gender_to_fit[y]) %>% 
+               filter(denominator_age_group==age_to_fit[i])%>% filter(outcome==outcomes_to_fit[j])) <1){ next }
+          # this should filter out combinations where there is no data and skip to the next iteration, but it doesn't 
+      
+        working.nb <- glm.nb(events ~ as.factor(month), months.since.start,data=IR.age_gender%>% filter(months.since.start<= end_mod) %>% filter(denominator_sex==gender_to_fit[y]) %>% 
+                             filter(denominator_age_group==age_to_fit[i])%>% filter(outcome==outcomes_to_fit[j]))
+
+
+    models.age_gender[[paste0("m.",age_to_fit[i],gender_to_fit[y],".nb")]]  <- working.nb
+      pred <-predict(working.nb, newdata=IR.age_gender%>% filter(months.since.start<= end_pred) %>% filter(denominator_sex==gender_to_fit[y]) %>% filter(denominator_age_group==age_to_fit[i])%>%
+                       filter(outcome==outcomes_to_fit[j]),type="response", se.fit = TRUE, interval= "prediction", level=0.95)
+      
+      models.age_gender_pred[[paste0("m.",age_to_fit[i],gender_to_fit[y],outcomes_to_fit[j], ".nb")]] <- cbind(IR.age_gender %>% filter(months.since.start<= end_pred) %>% 
+                                                                                                                 filter(outcome==outcomes_to_fit[j])%>% filter(denominator_sex==gender_to_fit[y]) %>% 
+                                                                                                                 filter(denominator_age_group==age_to_fit[i]), data.frame(est=as.character(pred$fit), model="nb")) %>%  
+        add_pi(working.nb, names = c("lwr", "upr"), alpha = 0.05) %>%
+        mutate(ir_pred=pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>%
+        mutate(red = (100*(events-pred)/pred))
+    }
+  }
+}
+
+
+val_age_gender <- bind_rows(models.age_gender_pred) %>% mutate(ir_pred =pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>% 
+  mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
+save(val_age_gender, file=here("4_Results", db.name,  "Validation", "Validation_age_gender.RData"))
+
+
+
+# as a poisson
+
+
+for(j in 1:length(outcomes_to_fit)){
+  for(i in 1:length(age_to_fit)){
+    for(y in 1:length(gender_to_fit)){
+      if (nrow(IR.age_gender%>% filter(denominator_sex==gender_to_fit[y]) %>% 
+               filter(denominator_age_group==age_to_fit[i])%>% filter(outcome==outcomes_to_fit[j])) <1){ next }
+      # this should filter out combinations where there is no data and skip to the next iteration, but it doesn't 
+      
+      working.p <- glm(events ~ as.factor(month), months.since.start,data=IR.age_gender%>% filter(months.since.start<= end_mod) %>% filter(denominator_sex==gender_to_fit[y]) %>% 
+                             filter(denominator_age_group==age_to_fit[i])%>% filter(outcome==outcomes_to_fit[j]), family="poisson")
+      
+      
+      models.age_gender[[paste0("m.",age_to_fit[i],gender_to_fit[y],".nb")]]  <- working.p
+      pred <-predict(working.p, newdata=IR.age_gender%>% filter(months.since.start<= end_pred) %>% filter(denominator_sex==gender_to_fit[y]) %>% filter(denominator_age_group==age_to_fit[i])%>%
+                       filter(outcome==outcomes_to_fit[j]),type="response", se.fit = TRUE, interval= "prediction", level=0.95)
+      
+      models.age_gender_pred[[paste0("m.",age_to_fit[i],gender_to_fit[y],outcomes_to_fit[j], ".nb")]] <- cbind(IR.age_gender %>% filter(months.since.start<= end_pred) %>% 
+                                                                                                                 filter(outcome==outcomes_to_fit[j])%>% filter(denominator_sex==gender_to_fit[y]) %>% 
+                                                                                                                 filter(denominator_age_group==age_to_fit[i]), data.frame(est=as.character(pred$fit), model="poisson")) %>%  
+        add_pi(working.p, names = c("lwr", "upr"), alpha = 0.05) %>%
+        mutate(ir_pred=pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>%
+        mutate(red = (100*(events-pred)/pred))
+    }
+  }
+}
+
+
+val_age_gender <- bind_rows(models.age_gender_pred) %>% mutate(ir_pred =pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>% 
+  mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
+save(val_age_gender, file=here("4_Results", db.name,  "Validation", "Validation_age_gender.RData"))
+
+
+
+rm(IR.age_gender, models.age_gender,models.age_gender_pred, pred,working.nb, age_to_fit, gender_to_fit, i, j, y )
+
+
+
+##### validation by age and sex with combined categories
+
+# Create a dataset with age and sex categories combined
+
+IR.age_gender_cat <- IR.age_gender %>% dplyr::mutate(age_sex_cat = case_when(denominator_cohort_id == 3 ~ "Female 0-150",
+                                                                             denominator_cohort_id == 6 ~ "Female 0-19",
+                                                                             denominator_cohort_id == 9 ~ "Female 20-39",
+                                                                             denominator_cohort_id == 12 ~ "Female 40-59",
+                                                                             denominator_cohort_id == 15 ~ "Female 60-79",
+                                                                             denominator_cohort_id == 18 ~ "Female 80-150",
+                                                                             denominator_cohort_id == 2 ~ "Male 0-150",
+                                                                             denominator_cohort_id == 5 ~ "Male 0-19",
+                                                                             denominator_cohort_id == 8 ~ "Male 20-39",
+                                                                             denominator_cohort_id == 11 ~ "Male 40-59",
+                                                                             denominator_cohort_id == 14 ~ "Male 60-79",
+                                                                             denominator_cohort_id == 17 ~ "Male 80-150"))
 
 ###### Validation by age and sex - INITIAL SET UP  
+
 
 IR.age_male <- inc_data_final %>%  mutate(Month1 =paste(1,month, year, sep ="-"))  %>% filter(denominator_sex =="Male")
 IR.age_female <- inc_data_final %>%  mutate(Month1 =paste(1,month, year, sep ="-"))  %>% filter(denominator_sex =="Female")
@@ -135,7 +247,7 @@ IR.age_female$Date <- dmy(IR.age_female$Month1)
 IR.age_female$Month1 <- NULL
 
 age_to_fit_male <- IR.age_male %>%  ungroup() %>%dplyr::select("denominator_age_group")%>% distinct()%>%pull()
-models.age_male.fit <- list()
+models.age_male <- list()
 models.age_male_pred <- list()
 
 end_mod <- 26 #month.since.start= Feb 2019
@@ -149,7 +261,7 @@ for(j in 1:length(outcomes_to_fit_male)){
       working.nb <- glm.nb(events ~ as.factor(month)+months.since.start,data=IR.age_male%>% filter(months.since.start<= end_mod) %>% 
                              filter(denominator_age_group==age_to_fit_male[i])%>% filter(outcome==outcomes_to_fit_male[j]))
       
-      models.age_male.fit[[paste0("m.",age_to_fit_male[i],".nb")]]  <- working.nb
+      models.age_male[[paste0("m.",age_to_fit_male[i],".nb")]]  <- working.nb
       pred <-predict(working.nb, newdata=IR.age_male %>% filter(months.since.start<= end_pred) %>% filter(denominator_age_group==age_to_fit_male[i])%>%
                        filter(outcome==outcomes_to_fit_male[j]),type="response", se.fit = TRUE, interval= "prediction", level=0.95)
       
@@ -164,32 +276,72 @@ for(j in 1:length(outcomes_to_fit_male)){
 
 val_age_male <- bind_rows(models.age_male_pred) %>% mutate(ir_pred =pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>% 
   mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
+save(val_age_male, file=here("4_Results", db.name,  "Validation", "Validation_age_male.RData"))
 
-
-save(val_age_male, file=here("4_Results", db.name,  "Validation", "Validation_age_male_nb.RData"))
-save(models.age_male.fit, file=here("4_Results", db.name,  "Validation", "Fit Statistics", "Validation_model_male_nb_fit.RData"))
-write.csv(val_age_male, file=here("4_Results", db.name,  "Validation","Validation_age_male_nb.csv"))
-
-rm(models.age_male.fit,models.age_male_pred, pred,working.nb, age_to_fit_male)
+rm(IR.age_male, models.age_male,models.age_male_pred, pred,working.nb, age_to_fit_male)
 
 
 
 
-###### Validation by age- FOR FEMALES ONLY 
-# run this separately by each cancer as combined it did not work with the multiple category for loops
+###### Validation by age- FOR FEMALES ONLY - THIS DOES NOT RUN COLORECTAL CANCER
+
+age_to_fit_female <- IR.age_female %>%  ungroup() %>%dplyr::select("denominator_age_group")%>% distinct()%>%pull()
+models.age_female <- list()
+models.age_female_pred <- list()
+
+end_mod <- 26 #month.since.start= Feb 2019
+end_pred <- 38 #month.since.start= Feb 2020
+
+
+for(j in 1:length(outcomes_to_fit_female)){
+  for(i in 1:length(age_to_fit_female)){
+    
+   if (nrow(IR.age_female %>%  filter(denominator_age_group==age_to_fit_female[i])%>% filter(outcome==outcomes_to_fit[j])) <1){ next } # this works to filter out categories with no rows
+    
+    working.nb <- glm.nb(events ~ as.factor(month)+months.since.start,data=IR.age_female%>% filter(months.since.start<= end_mod) %>% 
+                           filter(denominator_age_group==age_to_fit_female[i])%>% filter(outcome==outcomes_to_fit_female[j]))
+    
+    if (working.nb$th.warn == "iteration limit reached") {
+     working.nb <- glm(events~as.factor(month)+months.since.start,data=IR.age_female%>% filter(months.since.start<= end_mod) %>% 
+    filter(denominator_age_group==age_to_fit_female[i])%>% filter(outcome==outcomes_to_fit_female[j]), family=poisson)
+    } # this should make the model default to a poisson model if the data are not overdispersed in one of the category combinations, which is what is evident from the means/vars of some categories
+    
+        models.age_female[[paste0("m.",age_to_fit_female[i],".nb")]]  <- working.nb
+    pred <-predict(working.nb, newdata=IR.age_female %>% filter(months.since.start<= end_pred) %>% filter(denominator_age_group==age_to_fit_female[i])%>%
+                     filter(outcome==outcomes_to_fit_female[j]),type="response", se.fit = TRUE, interval= "prediction", level=0.95)
+    
+    models.age_female_pred[[paste0("m.",age_to_fit_female[i],outcomes_to_fit_female[j], ".nb")]] <- cbind(IR.age_female %>% filter(months.since.start<= end_pred) %>% 
+                                                                                                      filter(outcome==outcomes_to_fit_female[j])%>%  
+                                                                                                      filter(denominator_age_group==age_to_fit_female[i]), data.frame(est=as.character(pred$fit), model="nb")) %>%  
+      add_pi(working.nb, names = c("lwr", "upr"), alpha = 0.05) %>%
+      mutate(ir_pred=pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>%
+      mutate(red = (100*(events-pred)/pred))
+  }
+}
+
+val_age_female <- bind_rows(models.age_female_pred) %>% mutate(ir_pred =pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>% 
+  mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
+save(val_age_female, file=here("4_Results", db.name,  "Validation", "Validation_age_female.RData"))
+
+rm(IR.age_female, models.age_female,models.age_female_pred, pred,working.nb, age_to_fit_female, i, j)
+
+
+# run this separately by each cancer
 
 # Breast
 
 age_to_fit_female <- IR.age_female %>%  ungroup() %>%dplyr::select("denominator_age_group")%>% distinct()%>%pull()
-models.age_female_breast.fit <- list()
+models.age_female <- list()
 models.age_female_pred <- list()
+
+
 
 for(i in 1:length(age_to_fit_female)){
   
   working.nb <- glm.nb(events ~ as.factor(month)+months.since.start,data=IR.age_female%>% filter(months.since.start<= end_mod) %>% 
                          filter(denominator_age_group==age_to_fit_female[i])%>% filter(outcome=="Breast"))
   
-  models.age_female_breast.fit[[paste0("m.",age_to_fit_female[i],".nb")]]  <- working.nb
+  models.age_female[[paste0("m.",age_to_fit_female[i],".nb")]]  <- working.nb
   pred <-predict(working.nb, newdata=IR.age_female %>% filter(months.since.start<= end_pred) %>% filter(denominator_age_group==age_to_fit_female[i])%>%
                    filter(outcome=="Breast"),type="response", se.fit = TRUE, interval= "prediction", level=0.95)
   
@@ -204,13 +356,12 @@ for(i in 1:length(age_to_fit_female)){
 val_age_female_breast <- bind_rows(models.age_female_pred) %>% mutate(ir_pred =pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>% 
   mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
 
-save(models.age_female_breast.fit, file=here("4_Results", db.name,  "Validation", "Fit Statistics", "Validation_model_female_nb_fit_breast.RData"))
-rm(models.age_female_breast.fit,models.age_female_pred, pred,working.nb, age_to_fit_female, i)
+rm(models.age_female,models.age_female_pred, pred,working.nb, age_to_fit_female, i)
 
 # Colorectal
 
 age_to_fit_female <- IR.age_female %>%  ungroup() %>%dplyr::select("denominator_age_group")%>% distinct()%>%pull()
-models.age_female_colorectal.fit <- list()
+models.age_female <- list()
 models.age_female_pred <- list()
 
 end_mod <- 26 #month.since.start= Feb 2019
@@ -222,7 +373,7 @@ end_pred <- 38 #month.since.start= Feb 2020
       working.nb <- glm.nb(events ~ as.factor(month)+months.since.start,data=IR.age_female%>% filter(months.since.start<= end_mod) %>% 
                            filter(denominator_age_group==age_to_fit_female[i])%>% filter(outcome=="Colorectal"))
     
-    models.age_female_colorectal.fit[[paste0("m.",age_to_fit_female[i],".nb")]]  <- working.nb
+    models.age_female[[paste0("m.",age_to_fit_female[i],".nb")]]  <- working.nb
     pred <-predict(working.nb, newdata=IR.age_female %>% filter(months.since.start<= end_pred) %>% filter(denominator_age_group==age_to_fit_female[i])%>%
                      filter(outcome=="Colorectal"),type="response", se.fit = TRUE, interval= "prediction", level=0.95)
     
@@ -238,16 +389,14 @@ end_pred <- 38 #month.since.start= Feb 2020
 val_age_female_colorectal <- bind_rows(models.age_female_pred) %>% mutate(ir_pred =pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>% 
   mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
 
-save(models.age_female_colorectal.fit, file=here("4_Results", db.name,  "Validation", "Fit Statistics", "Validation_model_female_nb_fit_colorectal.RData"))
-
-rm(models.age_female_colorectal.fit, models.age_female_pred, pred,working.nb, age_to_fit_female, i)
+rm(models.age_female,models.age_female_pred, pred,working.nb, age_to_fit_female, i)
 
 
 
 # Lung
 
 age_to_fit_female <- IR.age_female %>%  ungroup() %>%dplyr::select("denominator_age_group")%>% distinct()%>%pull()
-models.age_female_lung.fit <- list()
+models.age_female <- list()
 models.age_female_pred <- list()
 
 for(i in 1:length(age_to_fit_female)){
@@ -255,7 +404,7 @@ for(i in 1:length(age_to_fit_female)){
   working.nb <- glm.nb(events ~ as.factor(month)+months.since.start,data=IR.age_female%>% filter(months.since.start<= end_mod) %>% 
                          filter(denominator_age_group==age_to_fit_female[i])%>% filter(outcome=="Lung"))
   
-  models.age_female_lung.fit[[paste0("m.",age_to_fit_female[i],".nb")]]  <- working.nb
+  models.age_female[[paste0("m.",age_to_fit_female[i],".nb")]]  <- working.nb
   pred <-predict(working.nb, newdata=IR.age_female %>% filter(months.since.start<= end_pred) %>% filter(denominator_age_group==age_to_fit_female[i])%>%
                    filter(outcome=="Lung"),type="response", se.fit = TRUE, interval= "prediction", level=0.95)
   
@@ -270,36 +419,23 @@ for(i in 1:length(age_to_fit_female)){
 val_age_female_lung <- bind_rows(models.age_female_pred) %>% mutate(ir_pred =pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>% 
   mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
 
-save(models.age_female_lung.fit, file=here("4_Results", db.name,  "Validation", "Fit Statistics", "Validation_model_female_nb_fit_lung.RData"))
-
-rm(models.age_female_lung.fit,models.age_female_pred, pred,working.nb, age_to_fit_female, i)
+rm(models.age_female,models.age_female_pred, pred,working.nb, age_to_fit_female, i)
 
 
-# combine the rows from the 3 cancer outputs for females and save all relevant files
+# combine the rows from the 3 cancer outputs for females
 
 val_age_female <- rbind(val_age_female_breast, val_age_female_colorectal, val_age_female_lung)
 
 
-save(val_age_female, file=here("4_Results", db.name,  "Validation", "Validation_age_female_nb.RData"))
-write.csv(val_age_female, file=here("4_Results", db.name,  "Validation","Validation_age_female_nb.csv"))
+save(val_age_female, file=here("4_Results", db.name,  "Validation", "Validation_age_female.RData"))
 
 rm(IR.age_female, models.age_female,models.age_female_pred, pred,working.nb, age_to_fit_female)
 
 
-# combine the rows from the all male and female outputs and save all relevant files
-val_age_sex <- rbind(val_age_male, val_age_female)
 
-
-save(val_age_sex, file=here("4_Results", db.name,  "Validation", "Validation_age_sex_nb.RData"))
-write.csv(val_age_sex, file=here("4_Results", db.name,  "Validation","Validation_age_sex_nb.csv"))
 
 
 ###### Validation by SES: run this when we have the data
-
-IR.ses <- IR.ses %>% mutate(Month1 =paste(1,month, year, sep ="-"))
-IR.ses$Date <- NA
-IR.ses$Date <- dmy(IR.ses$Month1)
-IR.ses$Month1 <- NULL
 ses_to_fit <- IR.ses %>%  ungroup() %>%dplyr::select("medea")%>% distinct()%>%pull()
 models.ses_pred <- list()
 models.ses <- list()
@@ -456,10 +592,7 @@ figure_Validation_overall<-ggarrange(overall_Breast, overall_Colorectal, overall
                           hjust = c(-0.25,-0.25),
                           common.legend=TRUE, legend="right" )
 
-# Save
-ggsave(here("4_Results", db.name, "Plots", "Figure_1_validation_overall.jpg"), figure_Validation_overall, dpi=300, scale = 1, width = 12, height = 9)
 
-# UP TO HERE
 
 ## Plots stratified by Age and gender
 # Breast #  this returns all NAs so something is not right here with the class of the variables
@@ -498,7 +631,7 @@ age_female_Breast <-age_female_Breast+
 
 
 
-## PLOTS STRATIFIED BY AGE AND SEX
+## ADD ALL OTHER PLOTS FOR THE OTHER CANCERS STRATIFIED BY AGE AND SEX HERE TOO WHEN THE ABOVE IS CORRECT
 
 # Males
 #Colorectal
@@ -590,8 +723,6 @@ figure_age_gender <-ggarrange(age_gender_Breast, age_gender_Colorectal, age_gend
 
 
 
-
-
 # add this when we have the SES data
 # SES
 prediction_ses$medea <- factor(prediction_ses$medea, levels=c("U1", "U2", "U3", "U4", "U5", "R"))
@@ -633,7 +764,8 @@ figure_ses <-ggarrange(plot_ses_Breast, plot_ses_Colorectal, plot_ses_Lung, plot
                        common.legend=TRUE, legend="right" )
 
 
-
+# Save
+ggsave(here("4_Results", db.name, "Plots", "Figure_1_validation_overall.jpg"), figure_Validation_overall, dpi=300, scale = 2, width = 12, height = 9)
 ggsave(here("4_Results", db.name, "Plots", "Figure_2_age_gender.jpg"), figure_age_gender, dpi=300, scale = 2)
 ggsave(here("4_Results", db.name, "Plots", "Figure_3_ses.jpg"), figure_ses, dpi=300, scale = 2)
 
