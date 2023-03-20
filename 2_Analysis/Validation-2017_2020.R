@@ -34,7 +34,7 @@ library(ggpubr)
 load(here("1_DataPrep", "Data", "GeneralPop2017_20.RData"))
 Sys.setlocale("LC_TIME", "English")
 
-# check that there are records in each of the combinations of outcome, age and sex. If there are some combinations with no rows, then may need to run these separately
+# DO THIS LATER - check that there are records in each of the combinations of outcome, age and sex. If there are some combinations with no rows, then may need to run these separately
 save_counts <- count(IR.age_gender, outcome, denominator_age_group, denominator_sex, name = "Freq") %>% print(n=Inf)
 
 
@@ -83,7 +83,7 @@ val_overall <- bind_rows(models.overall_pred) %>% mutate(ir_pred =pred*100000/mo
   mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
 
 save(val_overall, file=here("4_Results", db.name,  "Validation","Validation_model_overall_nb.RData"))
-save(models.overall_validation.fit, file=here("4_Results", db.name,  "Validation", "Fit Statistics", "Validation_model_overall_nb_fit.RData"))
+save(models.overall_validation.fit, file=here("4_Results", db.name,  "Validation", "Validation_model_overall_nb_fit.RData"))
 write.csv(val_overall, file=here("4_Results", db.name,  "Validation","Validation_model_overall_nb.csv"))
 
 rm(working.nb, pred, models.overall_pred, models.overall_validation.fit, j)
@@ -138,6 +138,11 @@ age_to_fit_male <- IR.age_male %>%  ungroup() %>%dplyr::select("denominator_age_
 models.age_male.fit <- list()
 models.age_male_pred <- list()
 
+
+age_to_fit_female <- IR.age_female %>%  ungroup() %>%dplyr::select("denominator_age_group")%>% distinct()%>%pull()
+models.age_female.fit <- list()
+models.age_female_pred <- list()
+
 end_mod <- 26 #month.since.start= Feb 2019
 end_pred <- 38 #month.since.start= Feb 2020
 
@@ -167,10 +172,45 @@ val_age_male <- bind_rows(models.age_male_pred) %>% mutate(ir_pred =pred*100000/
 
 
 save(val_age_male, file=here("4_Results", db.name,  "Validation", "Validation_age_male_nb.RData"))
-save(models.age_male.fit, file=here("4_Results", db.name,  "Validation", "Fit Statistics", "Validation_model_male_nb_fit.RData"))
+save(models.age_male.fit, file=here("4_Results", db.name,  "Validation",  "Validation_model_male_nb_fit.RData"))
 write.csv(val_age_male, file=here("4_Results", db.name,  "Validation","Validation_age_male_nb.csv"))
 
-rm(models.age_male.fit,models.age_male_pred, pred,working.nb, age_to_fit_male)
+rm(models.age_male.fit,models.age_male_pred, pred,working.nb, age_to_fit_male, i, j)
+
+
+
+# FOR FEMALES ONLY 
+
+for(j in 1:length(outcomes_to_fit_female)){
+  for(i in 1:length(age_to_fit_female)){
+    working.nb <- glm.nb(events ~ as.factor(month)+months.since.start,data=IR.age_female%>% filter(months.since.start<= end_mod) %>% 
+                           filter(denominator_age_group==age_to_fit_female[i])%>% filter(outcome==outcomes_to_fit_female[j]))
+    
+    models.age_female.fit[[paste0("m.",age_to_fit_female[i],".nb")]]  <- working.nb
+    pred <-predict(working.nb, newdata=IR.age_female %>% filter(months.since.start<= end_pred) %>% filter(denominator_age_group==age_to_fit_female[i])%>%
+                     filter(outcome==outcomes_to_fit_female[j]),type="response", se.fit = TRUE, interval= "prediction", level=0.95)
+    
+    models.age_female_pred[[paste0("m.",age_to_fit_female[i],outcomes_to_fit_female[j], ".nb")]] <- cbind(IR.age_female %>% filter(months.since.start<= end_pred) %>% 
+                                                                                                      filter(outcome==outcomes_to_fit_female[j])%>%  
+                                                                                                      filter(denominator_age_group==age_to_fit_female[i]), data.frame(est=as.character(pred$fit), model="nb")) %>%  
+      add_pi(working.nb, names = c("lwr", "upr"), alpha = 0.05) %>%
+      mutate(ir_pred=pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>%
+      mutate(red = (100*(events-pred)/pred))
+  }
+}
+
+val_age_female <- bind_rows(models.age_female_pred) %>% mutate(ir_pred =pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>% 
+  mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
+
+
+save(val_age_female, file=here("4_Results", db.name,  "Validation", "Validation_age_female_nb.RData"))
+save(models.age_female.fit, file=here("4_Results", db.name,  "Validation",  "Validation_model_female_nb_fit.RData"))
+write.csv(val_age_female, file=here("4_Results", db.name,  "Validation","Validation_age_female_nb.csv"))
+
+rm(models.age_female.fit,models.age_female_pred, pred,working.nb, age_to_fit_female, i, j)
+
+
+
 
 
 
@@ -204,12 +244,12 @@ for(i in 1:length(age_to_fit_female)){
 val_age_female_breast <- bind_rows(models.age_female_pred) %>% mutate(ir_pred =pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>% 
   mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
 
-save(models.age_female_breast.fit, file=here("4_Results", db.name,  "Validation", "Fit Statistics", "Validation_model_female_nb_fit_breast.RData"))
+save(models.age_female_breast.fit, file=here("4_Results", db.name,  "Validation",  "Validation_model_female_nb_fit_breast.RData"))
 rm(models.age_female_breast.fit,models.age_female_pred, pred,working.nb, age_to_fit_female, i)
 
 # Colorectal
 
-age_to_fit_female <- IR.age_female %>%  ungroup() %>%dplyr::select("denominator_age_group")%>% distinct()%>%pull()
+age_to_fit_female <- IR.age_female %>% ungroup() %>%dplyr::select("denominator_age_group")%>% distinct()%>%pull()
 models.age_female_colorectal.fit <- list()
 models.age_female_pred <- list()
 
@@ -238,7 +278,7 @@ end_pred <- 38 #month.since.start= Feb 2020
 val_age_female_colorectal <- bind_rows(models.age_female_pred) %>% mutate(ir_pred =pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>% 
   mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
 
-save(models.age_female_colorectal.fit, file=here("4_Results", db.name,  "Validation", "Fit Statistics", "Validation_model_female_nb_fit_colorectal.RData"))
+save(models.age_female_colorectal.fit, file=here("4_Results", db.name,  "Validation",  "Validation_model_female_nb_fit_colorectal.RData"))
 
 rm(models.age_female_colorectal.fit, models.age_female_pred, pred,working.nb, age_to_fit_female, i)
 
@@ -270,7 +310,7 @@ for(i in 1:length(age_to_fit_female)){
 val_age_female_lung <- bind_rows(models.age_female_pred) %>% mutate(ir_pred =pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>% 
   mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
 
-save(models.age_female_lung.fit, file=here("4_Results", db.name,  "Validation", "Fit Statistics", "Validation_model_female_nb_fit_lung.RData"))
+save(models.age_female_lung.fit, file=here("4_Results", db.name,  "Validation",  "Validation_model_female_nb_fit_lung.RData"))
 
 rm(models.age_female_lung.fit,models.age_female_pred, pred,working.nb, age_to_fit_female, i)
 
@@ -328,7 +368,7 @@ val_ses <- bind_rows(models.ses_pred) %>% mutate(ir_pred =pred*100000/months, lw
 save(val_ses, file=here("4_Results", db.name,  "Validation", "Validation_ses.RData"))
 
 rm(IR.ses, models.ses,models.ses_pred, pred,working.nb, ses_to_fit,
-   end_mod,end_pred, i,j,outcomes_to_fit,y)
+   end_mod,end_pred, i,j,outcomes_to_fit, i, j)
 
 
 
