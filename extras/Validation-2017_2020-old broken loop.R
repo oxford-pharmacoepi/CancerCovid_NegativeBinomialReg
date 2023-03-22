@@ -230,6 +230,15 @@ IR.age_gender_cat <- IR.age_gender %>% dplyr::mutate(age_sex_cat = case_when(den
                                                                              denominator_cohort_id == 14 ~ "Male 60-79",
                                                                              denominator_cohort_id == 17 ~ "Male 80-150"))
 
+
+# Create a dataset with age and sex categories combined
+
+IR.age_female_cat <- IR.age_female %>% dplyr::mutate(age_sex_cat = case_when(denominator_cohort_id == 3 ~ "Female 0-150",
+                                                                             denominator_cohort_id == 6 ~ "Female 0-19",
+                                                                             denominator_cohort_id == 9 ~ "Female 20-39",
+                                                                             denominator_cohort_id == 12 ~ "Female 40-59",
+                                                                             denominator_cohort_id == 15 ~ "Female 60-79",
+                                                                             denominator_cohort_id == 18 ~ "Female 80-150"))
 ###### Validation by age and sex - INITIAL SET UP  
 
 

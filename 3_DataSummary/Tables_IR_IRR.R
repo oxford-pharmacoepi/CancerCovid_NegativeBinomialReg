@@ -18,11 +18,11 @@ library(epiR)
 library(fmsb)
 library(epitools)
 
-load(here("2_DataPrep", "Data", "GeneralPop2017_20.RData"))
-load(here("2_DataPrep", "Data", "IR.overall.RData"))
-load(here("2_DataPrep", "Data", "IR.age.RData"))
-load(here("2_DataPrep", "Data", "IR.gender.RData"))
-load(here("2_DataPrep", "Data", "IR.ses.RData"))
+load(here("1_DataPrep", "Data", "GeneralPop2017_20.RData"))
+load(here("4_Results", db.name, "Modelling", "IR.overall.RData"))
+#load(here("2_DataPrep", "Data", "IR.age.RData"))
+#load(here("2_DataPrep", "Data", "IR.gender.RData"))
+#load(here("2_DataPrep", "Data", "IR.ses.RData"))
 
 # Periods-----------------
 IR.overall <- IR.overall %>% mutate(Month1 =paste(1,month, year, sep ="-")) 

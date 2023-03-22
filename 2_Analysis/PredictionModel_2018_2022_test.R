@@ -35,6 +35,11 @@ load(here("1_DataPrep", "Data", "GeneralPop2018_22.RData"))
 
 
 IR.overall <- inc_data_pred_final %>% mutate(Month1 =paste(1,month, year, sep ="-")) %>% filter(denominator_cohort_id ==1)
+
+# remove data from Dec 2021 to see if the model still over predicts the last iteration
+IR.overall <- IR.overall %>% filter(IR.overall$month_year != "12/2021")
+
+
 IR.age_gender <- inc_data_pred_final %>%  mutate(Month1 =paste(1,month, year, sep ="-"))
 #IR.ses <- IR.ses %>% mutate(Month1 =paste(1,month, year, sep ="-")) 
 outcomes_to_fit<- inc_data_pred_final %>% dplyr::select("outcome")%>% distinct()%>%pull()
@@ -115,12 +120,8 @@ tab <- predicton_overall_periods %>%  mutate(pred = paste0(paste(pred_t)," (", p
 tab_red <- tab %>%
   dplyr::select(covid, outcome,red_perc)%>%
   spread(key=covid,value=red_perc) %>% 
-  mutate(value = "Red_perc")  %>%
-  relocate("Easing of restrictions", .after= "Third lockdown") %>%
-  relocate("Legal restrictions removed", .after= "Easing of restrictions") %>%
-  relocate("Post", .after= "Legal restrictions removed") 
-
-
+  mutate(value = "Red_perc")  %>% # reduction percentage
+  relocate("Post", .after= "Legal restrictions removed")
 tab_dif <- predicton_overall_periods %>%
   mutate(dif=pred_t-events_t)%>%
   mutate(dif_lwr= lwr_t-events_t)%>%
@@ -128,17 +129,14 @@ tab_dif <- predicton_overall_periods %>%
   mutate(under_dx = paste0(paste(dif)," (", paste(dif_lwr)," to ", paste(dif_upr), ")"))%>%
   dplyr::select(covid, outcome,under_dx) %>%
   spread(key=covid,value=under_dx) %>% 
-  mutate(value = "Underdx") %>%
-  relocate("Easing of restrictions", .after= "Third lockdown") %>%
-  relocate("Legal restrictions removed", .after= "Easing of restrictions") %>%
-  relocate("Post", .after= "Legal restrictions removed") 
+  mutate(value = "Underdx") %>% # under diagnosed
+  relocate("Post", .after= "Legal restrictions removed")
 
 tab1 <-rbind(tab_red, tab_dif)
 
-write.csv(tab1, file=here("4_Results", db.name, "Modelling", "overall_table.csv"))
-write.csv(tab, file=here("4_Results", db.name, "Modelling", "overall_red.csv"))
-save(prediction_overall, file=here("4_Results", db.name,  "Modelling", "Prediction_Overall_2018-2022.RData"))
-save(IR.overall, file=here("4_Results", db.name,  "Modelling", "IR.overall.RData"))
+write.csv(tab1, file=here("4_Results", db.name, "Modelling", "overall_table_remove_dec_2021.csv"))
+write.csv(tab, file=here("4_Results", db.name, "Modelling", "overall_red_remove_dec_2021.csv"))
+save(prediction_overall, file=here("4_Results", db.name,  "Modelling", "Prediction_Overall_2018-2022_removing_dec_2021.RData"))
 rm(IR.overall,models, models_period, models_post, models_pred, models_total, pred,
    prediction_overall_periods, tab, working.nb, predicton_overall_periods)
 
@@ -162,7 +160,7 @@ IR.age_gender$covid2[which(IR.age_gender$months.since.start >=31)] <- "Post-COVI
 end_mod <- 26 #month.since.start= Feb 2020 assuming start date in Jan 2018
 
 
-## FOR SOME REASON THIS ONLY RUNS FOR COLORECTAL CANCER AND DOES NOT CREATE PREDICTIONS FOR THE OTHERS. WILL NEED TO RUN MALES AND FEMALES SEPARATELY AS DONE IN VALIDATION MODEL
+## FOR SOME REASON THIS ONLY RUNS FOR LUNG CANCER AND DOES NOT CREATE PREDICTIONS FOR THE OTHERS
 for(j in 1:length(outcomes_to_fit)){
   for(i in 1:length(age_to_fit)){
     for(y in 1:length(gender_to_fit)){
@@ -534,14 +532,14 @@ figure_prediction_overall<-ggarrange(overall_prediction_Breast, overall_predicti
 
 # Age and gender
 # Breast
-#prediction_age.gender$denominator_sex <- factor(prediction_age.gender$denominator_sex, levels=rev(levels(prediction_age.gender$denominator_sex)))
-#levels(prediction_age.gender$denominator_sex) <- c("Female", "Male")
-#levels(prediction_age.gender$denominator_age_group) <- c("20;39", "40;59", "60;79", "0;150", "80;150")
+prediction_age.gender$denominator_sex <- factor(prediction_age.gender$denominator_sex, levels=rev(levels(prediction_age.gender$denominator_sex)))
+levels(prediction_age.gender$denominator_sex) <- c("Female", "Male", "Both")
+levels(prediction_age.gender$denominator_age_group) <- c("40;59", "60;79", "0;150", "80;150")
 
 age_gender_Breast <- prediction_age.gender  %>% 
   filter(outcome=="Breast") %>% 
   ggplot()+
- facet_grid(denominator_age_group~denominator_sex,scales="free")+
+ facet_grid(denominator_sex~denominator_age_group,scales="free")+
   geom_point(aes(Date,ir_m, colour= "Observed"))+
   geom_line(aes(Date,ir_m,colour= "Observed"))+
   
@@ -556,6 +554,8 @@ age_gender_Breast <- prediction_age.gender  %>%
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()
   )
+
+
 
 age_gender_Breast <-age_gender_Breast+ 
   theme(axis.text.x = element_text(angle=90),
@@ -567,113 +567,11 @@ age_gender_Breast <-age_gender_Breast+
   ylab("Incidence rate per 100,000 person-months")+
   xlab("")
 
-age_gender_Breast
 
-
-# Colorectal
-
-age_gender_Colorectal <- prediction_age.gender  %>% 
-  filter(outcome=="Colorectal") %>% 
-  ggplot()+
-  facet_grid(denominator_age_group~denominator_sex,scales="free")+
-  geom_point(aes(Date,ir_m, colour= "Observed"))+
-  geom_line(aes(Date,ir_m,colour= "Observed"))+
-  
-  geom_point(aes(Date,ir_pred,colour= "Expected"))+
-  geom_line(aes(Date,ir_pred,colour= "Expected"))+
-  geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
-  scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
-  
-  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
-  theme_bw() +
-  theme(axis.line = element_line(colour = "black"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank()
-  )
-
-age_gender_Colorectal <-age_gender_Colorectal+ 
-  theme(axis.text.x = element_text(angle=90),
-        axis.title.y = element_text(size = 9),
-        plot.margin=grid::unit(c(1,0.5,0,1), "cm") )+
-  
-  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
-  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
-  ylab("Incidence rate per 100,000 person-months")+
-  xlab("")
-
-age_gender_Colorectal
-
-
-
-# Lung
-
-age_gender_Lung <- prediction_age.gender  %>% 
-  filter(outcome=="Lung") %>% 
-  ggplot()+
-  facet_grid(denominator_age_group~denominator_sex,scales="free")+
-  geom_point(aes(Date,ir_m, colour= "Observed"))+
-  geom_line(aes(Date,ir_m,colour= "Observed"))+
-  
-  geom_point(aes(Date,ir_pred,colour= "Expected"))+
-  geom_line(aes(Date,ir_pred,colour= "Expected"))+
-  geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
-  scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
-  
-  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
-  theme_bw() +
-  theme(axis.line = element_line(colour = "black"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank()
-  )
-
-age_gender_Lung <-age_gender_Lung+ 
-  theme(axis.text.x = element_text(angle=90),
-        axis.title.y = element_text(size = 9),
-        plot.margin=grid::unit(c(1,0.5,0,1), "cm") )+
-  
-  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
-  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
-  ylab("Incidence rate per 100,000 person-months")+
-  xlab("")
-
-age_gender_Lung
-
-
-
-# Prostate
-
-age_gender_Prostate <- prediction_age.gender  %>% 
-  filter(outcome=="Prostate") %>% 
-  ggplot()+
-  facet_grid(denominator_age_group~denominator_sex,scales="free")+
-  geom_point(aes(Date,ir_m, colour= "Observed"))+
-  geom_line(aes(Date,ir_m,colour= "Observed"))+
-  
-  geom_point(aes(Date,ir_pred,colour= "Expected"))+
-  geom_line(aes(Date,ir_pred,colour= "Expected"))+
-  geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
-  scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
-  
-  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
-  theme_bw() +
-  theme(axis.line = element_line(colour = "black"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank()
-  )
-
-age_gender_Prostate <-age_gender_Prostate+ 
-  theme(axis.text.x = element_text(angle=90),
-        axis.title.y = element_text(size = 9),
-        plot.margin=grid::unit(c(1,0.5,0,1), "cm") )+
-  
-  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
-  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
-  ylab("Incidence rate per 100,000 person-months")+
-  xlab("")
-
-age_gender_Prostate
 
 ## ADD ALL OTHER PLOTS FOR THE OTHER CANCERS STRATIFIED BY AGE AND SEX HERE TOO
+
+
 
 
 figure_age_gender <-ggarrange(age_gender_AD, age_gender_MD,
@@ -757,8 +655,8 @@ figure_ses <-ggarrange(plot_ses_AD, plot_ses_MD,
 
 # Save
 
-ggsave(here("4_Results", db.name, "Plots", "Figure_1_prediction_overall.tiff"), figure_prediction_overall, dpi=300, scale = 2)
-ggsave(here("4_Results", db.name, "Plots", "Figure_1_prediction_overall.jpg"), figure_prediction_overall, dpi=300, scale = 2.5)
+ggsave(here("4_Results", db.name, "Plots", "Figure_1_prediction_overall_remove_dec_2021.tiff"), figure_prediction_overall, dpi=300, scale = 2)
+ggsave(here("4_Results", db.name, "Plots", "Figure_1_prediction_overall_remove_dec_2021.jpg"), figure_prediction_overall, dpi=300, scale = 2.5)
 
 
 
