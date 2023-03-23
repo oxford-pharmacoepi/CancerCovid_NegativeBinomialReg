@@ -10,6 +10,8 @@ load(here("1_DataPrep", "Data", "GeneralPop2018_22.RData"))
 
 IR.age_male <- inc_data_pred_final %>%  mutate(Month1 =paste(1,month, year, sep ="-"))  %>% filter(denominator_sex =="Male")
 
+# TO RULE OUT DEC 2021 DATA FILTER THE FOLLOWING. THIS IS BECAUSE THERE IS INCOMPLETE DATA IN THAT MONTH AND THE PREDICTION IS INACCURATE.
+IR.age_male  <- IR.age_male %>%  filter(month_year !="12/2021")
 
 # filter out data from 2017 as I am using data from 2018 for this modelling 
 IR.age_male <- IR.age_male %>% filter(IR.age_male$months.since.start>=1)

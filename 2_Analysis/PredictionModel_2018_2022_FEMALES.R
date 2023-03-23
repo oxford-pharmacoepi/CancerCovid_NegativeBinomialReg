@@ -10,6 +10,9 @@ load(here("1_DataPrep", "Data", "GeneralPop2018_22.RData"))
 
 IR.age_female <- inc_data_pred_final %>%  mutate(Month1 =paste(1,month, year, sep ="-"))  %>% filter(denominator_sex =="Female")
 
+# TO RULE OUT DEC 2021 DATA FILTER THE FOLLOWING. THIS IS BECAUSE THERE IS INCOMPLETE DATA IN THAT MONTH AND THE PREDICTION IS INACCURATE.
+IR.age_female  <- IR.age_female %>%  filter(month_year !="12/2021")
+
 # filter out data from 2017 as I am using data from 2018 for this modelling 
 
 IR.age_female <- IR.age_female %>% filter(IR.age_female$months.since.start>=1)
@@ -459,8 +462,175 @@ write.csv(tab_sex, file=here("4_Results", db.name,  "Modelling","Modelling_sex_n
 
 # combine all the prediction data frames for the 3 cancers for females and then for males and females
 
-prediction_age.gender <- rbind(prediction_age.female_breast, prediction_age.female_colorectal, prediction_age.female_lung, prediction_age.male)
-save(prediction_age.gender, file=here("4_Results", db.name,  "Modelling", "Prediction_age_gender.RData"))
-write.csv(prediction_age.gender, file=here("4_Results", db.name,  "Modelling","Prediction_age_gender.csv"))
+prediction_age.sex <- rbind(prediction_age.female_breast, prediction_age.female_colorectal, prediction_age.female_lung, prediction_age.male)
+save(prediction_age.sex, file=here("4_Results", db.name,  "Modelling", "Prediction_age_sex.RData"))
+write.csv(prediction_age.sex, file=here("4_Results", db.name,  "Modelling","Prediction_age_sex.csv"))
 
+
+## ================ PLOTS BY AGE AND SEX ================================= ##
+
+
+# Age and sex
+# Breast
+#prediction_age.gender$denominator_sex <- factor(prediction_age.gender$denominator_sex, levels=rev(levels(prediction_age.gender$denominator_sex)))
+#levels(prediction_age.gender$denominator_sex) <- c("Female", "Male")
+#levels(prediction_age.gender$denominator_age_group) <- c("20;39", "40;59", "60;79", "0;150", "80;150")
+
+age_sex_Breast <- prediction_age.sex  %>% 
+  filter(outcome=="Breast") %>% 
+  ggplot()+
+  facet_grid(denominator_age_group~denominator_sex,scales="free")+
+  geom_point(aes(Date,ir_m, colour= "Observed"))+
+  geom_line(aes(Date,ir_m,colour= "Observed"))+
+  
+  geom_point(aes(Date,ir_pred,colour= "Expected"))+
+  geom_line(aes(Date,ir_pred,colour= "Expected"))+
+  geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
+  scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
+  
+  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+  )
+
+age_sex_Breast <-age_sex_Breast+ 
+  theme(axis.text.x = element_text(angle=90),
+        axis.title.y = element_text(size = 9),
+        plot.margin=grid::unit(c(1,0.5,0,1), "cm") )+
+  
+  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
+  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
+  ylab("Incidence rate per 100,000 person-months")+
+  xlab("")
+
+age_sex_Breast
+
+
+# Colorectal
+
+age_sex_Colorectal <- prediction_age.sex  %>% 
+  filter(outcome=="Colorectal") %>% 
+  ggplot()+
+  facet_grid(denominator_age_group~denominator_sex,scales="free")+
+  geom_point(aes(Date,ir_m, colour= "Observed"))+
+  geom_line(aes(Date,ir_m,colour= "Observed"))+
+  
+  geom_point(aes(Date,ir_pred,colour= "Expected"))+
+  geom_line(aes(Date,ir_pred,colour= "Expected"))+
+  geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
+  scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
+  
+  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+  )
+
+age_sex_Colorectal <-age_sex_Colorectal+ 
+  theme(axis.text.x = element_text(angle=90),
+        axis.title.y = element_text(size = 9),
+        plot.margin=grid::unit(c(1,0.5,0,1), "cm") )+
+  
+  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
+  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
+  ylab("Incidence rate per 100,000 person-months")+
+  xlab("")
+
+age_sex_Colorectal
+
+
+
+# Lung
+
+age_sex_Lung <- prediction_age.sex  %>% 
+  filter(outcome=="Lung") %>% 
+  ggplot()+
+  facet_grid(denominator_age_group~denominator_sex,scales="free")+
+  geom_point(aes(Date,ir_m, colour= "Observed"))+
+  geom_line(aes(Date,ir_m,colour= "Observed"))+
+  
+  geom_point(aes(Date,ir_pred,colour= "Expected"))+
+  geom_line(aes(Date,ir_pred,colour= "Expected"))+
+  geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
+  scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
+  
+  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+  )
+
+age_sex_Lung <-age_sex_Lung+ 
+  theme(axis.text.x = element_text(angle=90),
+        axis.title.y = element_text(size = 9),
+        plot.margin=grid::unit(c(1,0.5,0,1), "cm") )+
+  
+  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
+  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
+  ylab("Incidence rate per 100,000 person-months")+
+  xlab("")
+
+age_sex_Lung
+
+
+
+# Prostate
+
+age_sex_Prostate <- prediction_age.sex  %>% 
+  filter(outcome=="Prostate") %>% 
+  ggplot()+
+  facet_grid(denominator_age_group~denominator_sex,scales="free")+
+  geom_point(aes(Date,ir_m, colour= "Observed"))+
+  geom_line(aes(Date,ir_m,colour= "Observed"))+
+  
+  geom_point(aes(Date,ir_pred,colour= "Expected"))+
+  geom_line(aes(Date,ir_pred,colour= "Expected"))+
+  geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
+  scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
+  
+  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+  )
+
+age_sex_Prostate <-age_sex_Prostate+ 
+  theme(axis.text.x = element_text(angle=90),
+        axis.title.y = element_text(size = 9),
+        plot.margin=grid::unit(c(1,0.5,0,1), "cm") )+
+  
+  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
+  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
+  ylab("Incidence rate per 100,000 person-months")+
+  xlab("")
+
+age_sex_Prostate
+
+## COMBINE PLOTS
+
+figure_modelling_age_sex <-ggarrange(age_sex_Breast, age_sex_Colorectal, age_sex_Lung, age_sex_Prostate,
+                                        align="hv", ncol=2, nrow=2,
+                                        labels = c("A) Breast Cancer", "B) Colorectal Cancer", "C) Lung Cancer", "D) Prostate Cancer"),font.label = list(size = 12),
+                                        hjust = c(-0.25,-0.25),
+                                        common.legend=TRUE, legend="right" )
+
+figure_modelling_age_sex
+
+
+ggsave(here("4_Results", db.name, "Plots", "Figure_2_modelling_age_sex.jpg"), figure_modelling_age_sex, dpi=300, scale = 1.25,  width = 16, height = 10)
+ggsave(here("4_Results", db.name, "Plots", "Figure_2_modelling_age_sex.tiff"), figure_modelling_age_sex, dpi=300, scale = 1.25,  width = 16, height = 10)
+
+
+# Save
+
+ggsave(here("4_Results", db.name, "Plots", "Figure_2_prediction_age_sex.tiff"), figure_modelling_age_sex, dpi=300, scale = 2)
+ggsave(here("4_Results", db.name, "Plots", "Figure_2_prediction_age_sex.jpg"), figure_modelling_age_sex, dpi=300, scale = 2.5)
+
+rm(figure_prediction_overall, figure_age_gender,figure_ses, prediction_age.gender,predicion_overall, predicition_ses, 
+   end_mod, j, outcomes_to_fit)
  
