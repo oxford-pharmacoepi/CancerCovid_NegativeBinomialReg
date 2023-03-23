@@ -162,6 +162,7 @@ write.csv(tab_breast, file=here("4_Results", db.name, "Modelling", "age.female_r
 write.csv(tab_female0_breast, file=here("4_Results", db.name, "Modelling", "female_red_breast.csv"))
 save(prediction_age.female_breast, file=here("4_Results", db.name,  "Modelling", "Prediction_age.female_breast.RData"))
 save(models.age_female_breast.fit, file=here("4_Results", db.name,  "Modelling", "Pred_models.age_female_breast.fit.RData"))
+save(IR.age_female, file=here("4_Results", db.name,  "Modelling", "IR.age_female.RData"))
 
 
 rm(models.age_female_period, models.age_female_pred,

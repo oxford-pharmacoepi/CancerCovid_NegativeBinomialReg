@@ -24,6 +24,7 @@ library(magrittr)
 library(ciTools)
 library(faraway)
 library(ggpubr)
+library(flextable)
 
 
 ###### Observed vs expected (Negative Binomial Regression models)
@@ -141,44 +142,24 @@ rm(IR.overall,models, models_period, models_post, models_pred, models_total, pre
 
 
 
-###TABLE--------- run this when we have the full data
+###TABLE--------- 
 tab1 <- tab1 %>% mutate(strata="overall")
-tab_gender <-tab_gender %>%rename(strata=denominator_sex)
-tab_age.gender1 <-tab_age.gender%>%mutate(strata=paste0(denominator_age_group, ",", denominator_sex))%>%
+tab_sex <-tab_sex %>% rename(strata=denominator_sex)
+tab_age_sex <-tab_age_sex %>% mutate(strata=paste0(denominator_age_group, ",", denominator_sex))%>%
   dplyr::select(-denominator_age_group, -denominator_sex)
-tab_ses <-tab_ses %>%rename(strata=medea)
+# tab_ses <-tab_ses %>%rename(strata=medea)
 
-table <- rbind(tab1, tab_gender,tab_age.gender1, tab_ses) %>% arrange(outcome)
-table_undx <- table %>%filter(value=="Underdx")%>%
-  rename(Lockdown_undx="Lockdown")%>%
-  rename(PL1_undx="Post-lockdown1")%>%
-  rename(PL2_undx="Post-lockdown2")%>%
-  rename(PL3_undx="Post-lockdown3")%>%
-  rename(PL_undx="Post")%>%
-  dplyr::select(-Total, -value)
+table <- rbind(tab1, tab_sex ,tab_age_sex) %>% arrange(outcome, desc(strata), desc(value)) 
 
-table_red <- table %>%filter(value!="Underdx")%>%
-  rename(Lockdown_red="Lockdown")%>%
-  rename(PL1_red="Post-lockdown1")%>%
-  rename(PL2_red="Post-lockdown2")%>%
-  rename(PL3_red="Post-lockdown3")%>%
-  rename(PL_red="Post")%>%
-  dplyr::select(-Total, -value)
+table <- table %>% relocate("value", .after= "outcome") %>% relocate("strata", .after= "outcome")
 
-table <- merge(table_undx, table_red)
-table1 <- table[, c("outcome", "strata", "Lockdown_undx","Lockdown_red",
-                    "PL1_undx",  "PL1_red", 
-                    "PL2_undx", "PL2_red",
-                    "PL3_undx","PL3_red",
-                    "PL_undx",  "PL_red" )]
-table1$strata <- factor(table1$strata, levels=c(
- "overall", "Female","Male", "18-34,Female","35-64,Female",">=65,Female",
- "18-34,Male","35-64,Male",">=65,Male",
- "U1", "U2", "U3", "U4", "U5", "R"
-))
+write.csv(table, file=here("4_Results", db.name, "Modelling", "Table_Modelling_Results.csv"))
 
-table1 <- table1 %>%arrange(outcome, strata)
-write.csv(table1, "4_Results", db.name, "Modelling", "Table_Results.rev.csv")
+Pretty_modelling_results_table <- flextable(table) %>% theme_vanilla() %>% 
+  set_caption(caption = "Number of cancer underdiagnoses and proportion reduced since pre-COVID, in each of the time periods") %>% 
+  width(width = 1.4) 
+
+save_as_docx('Table_Modelling_results' = Pretty_modelling_results_table, path=here("4_Results", db.name, "Modelling", "Table_Modelling_Results.docx"))
 
 ##### PLOTS--------
 
@@ -209,8 +190,8 @@ overall_prediction_Breast <- overall_prediction_Breast +
         plot.margin=grid::unit(c(1,1,0,1), "cm"))+
   geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
   ylab("Incidence rate per 100,000 person-months")+
-  xlab("")+
-  ggtitle("Incidence rates for breast cancer before and after COVID-19 lockdown")
+  xlab("") #+
+  #ggtitle("Incidence rates for breast cancer before and after COVID-19 lockdown")
 
 # Colorectal
 overall_prediction_Colorectal <- prediction_overall %>% filter(outcome=="Colorectal")%>%
@@ -237,8 +218,8 @@ overall_prediction_Colorectal <- overall_prediction_Colorectal +
         plot.margin=grid::unit(c(1,1,0,1), "cm"))+
   geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
   ylab("Incidence rate per 100,000 person-months")+
-  xlab("")+
-  ggtitle("Incidence rates for colorectal cancer before and after COVID-19 lockdown")
+  xlab("")#+
+  #ggtitle("Incidence rates for colorectal cancer before and after COVID-19 lockdown")
 
 
 # Lung
@@ -266,8 +247,8 @@ overall_prediction_Lung <- overall_prediction_Lung +
         plot.margin=grid::unit(c(1,1,0,1), "cm"))+
   geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
   ylab("Incidence rate per 100,000 person-months")+
-  xlab("")+
-  ggtitle("Incidence rates for Lung cancer before and after COVID-19 lockdown")
+  xlab("")#+
+  #ggtitle("Incidence rates for Lung cancer before and after COVID-19 lockdown")
 
 # Prostate
 overall_prediction_Prostate <- prediction_overall %>% filter(outcome=="Prostate")%>%
@@ -294,8 +275,8 @@ overall_prediction_Prostate <- overall_prediction_Prostate +
         plot.margin=grid::unit(c(1,1,0,1), "cm"))+
   geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
   ylab("Incidence rate per 100,000 person-months")+
-  xlab("")+
-  ggtitle("Incidence rates for prostate cancer before and after COVID-19 lockdown")
+  xlab("")#+
+  #ggtitle("Incidence rates for prostate cancer before and after COVID-19 lockdown")
 
 figure_prediction_overall<-ggarrange(overall_prediction_Breast, overall_prediction_Colorectal, overall_prediction_Lung, overall_prediction_Prostate, 
                     align="hv", ncol=2, nrow=2,

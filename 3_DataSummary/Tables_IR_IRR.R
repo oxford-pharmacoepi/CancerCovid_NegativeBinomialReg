@@ -18,30 +18,26 @@ library(epiR)
 library(fmsb)
 library(epitools)
 
-load(here("1_DataPrep", "Data", "GeneralPop2017_20.RData"))
-load(here("4_Results", db.name, "Modelling", "IR.overall.RData"))
-#load(here("2_DataPrep", "Data", "IR.age.RData"))
-#load(here("2_DataPrep", "Data", "IR.gender.RData"))
-#load(here("2_DataPrep", "Data", "IR.ses.RData"))
+load(here("1_DataPrep", "Data", "GeneralPop2018_22.RData"))
 
 # Periods-----------------
-IR.overall <- IR.overall %>% mutate(Month1 =paste(1,month, year, sep ="-")) 
-IR.gender <- IR.gender %>%  mutate(Month1 =paste(1,month, year, sep ="-")) 
-IR.age_gender <- IR.age_gender %>%  mutate(Month1 =paste(1,month, year, sep ="-"))
-IR.ses <- IR.ses %>%  mutate(Month1 =paste(1,month, year, sep ="-"))
+IR.overall <- inc_data_pred_final %>% mutate(Month1 =paste(1,month, year, sep ="-")) %>% filter(denominator_cohort_id ==1)
+IR.sex <- inc_data_pred_final %>% mutate(Month1 =paste(1,month, year, sep ="-")) %>% filter(denominator_sex !="Both") %>% filter(denominator_age_group =="0;150")
+IR.age_sex <- inc_data_pred_final %>% mutate(Month1 =paste(1,month, year, sep ="-")) %>% filter(denominator_sex !="Both")
+#IR.ses <- IR.ses %>%  mutate(Month1 =paste(1,month, year, sep ="-"))
 
 Sys.setlocale("LC_TIME", "English")
 IR.overall$Date <- NA
 IR.overall$Date <- dmy(IR.overall$Month1)
 IR.overall$Month1 <- NULL
 
-IR.gender$Date <- NA
-IR.gender$Date <- dmy(IR.gender$Month1)
-IR.gender$Month1 <- NULL
+IR.sex$Date <- NA
+IR.sex$Date <- dmy(IR.sex$Month1)
+IR.sex$Month1 <- NULL
 
-IR.age_gender$Date <- NA
-IR.age_gender$Date <- dmy(IR.age_gender$Month1)
-IR.age_gender$Month1 <- NULL
+IR.age_sex$Date <- NA
+IR.age_sex$Date <- dmy(IR.age_sex$Month1)
+IR.age_sex$Month1 <- NULL
 
 IR.ses$Date <- NA
 IR.ses$Date <- dmy(IR.ses$Month1)
@@ -51,11 +47,11 @@ IR.ses$Month1 <- NULL
 IR.overall$covid <- as.factor(IR.overall$covid)
 IR.overall$covid <-relevel(IR.overall$covid, "Pre-COVID")
 
-IR.gender$covid <- as.factor(IR.gender$covid)
-IR.gender$covid <-relevel(IR.gender$covid, "Pre-COVID")
+IR.sex$covid <- as.factor(IR.sex$covid)
+IR.sex$covid <-relevel(IR.sex$covid, "Pre-COVID")
 
-IR.age_gender$covid <- as.factor(IR.age_gender$covid)
-IR.age_gender$covid <-relevel(IR.age_gender$covid, "Pre-COVID")
+IR.age_sex$covid <- as.factor(IR.age_sex$covid)
+IR.age_sex$covid <-relevel(IR.age_sex$covid, "Pre-COVID")
 
 IR.ses$covid <- as.factor(IR.ses$covid)
 IR.ses$covid <-relevel(IR.ses$covid, "Pre-COVID")
@@ -64,42 +60,45 @@ IR.ses$covid <-relevel(IR.ses$covid, "Pre-COVID")
 #### INCIDENCE RATES-----------------
 ## IR  by study period stratified by age, sex and SES
 
-overall <-IR.overall%>% group_by(covid, outcome) %>% summarise( events_t = sum(events),pmar = sum(months),)
-gender <-IR.age_gender %>% group_by(covid, outcome,gender, age_gr2) %>% summarise( events_t = sum(events),pmar = sum(months),)
-ses <- IR.ses %>% group_by(covid, outcome,medea) %>% summarise( events_t = sum(events),pmar = sum(months),) %>%drop_na(medea)
+overall <-IR.overall%>% group_by(covid, outcome) %>% summarise( events_t = sum(events),person_months_at_risk = sum(months),)
+sex <-IR.age_sex %>% group_by(covid, outcome, denominator_sex, denominator_age_group) %>% summarise( events_t = sum(events),person_months_at_risk = sum(months),)
+#ses <- IR.ses %>% group_by(covid, outcome,medea) %>% summarise( events_t = sum(events),person_months_at_risk = sum(months),) %>%drop_na(medea)
 
-ir <- rbind(overall, gender,ses)%>% arrange(covid, outcome)%>% relocate(gender, .after = outcome)%>%
-  relocate(age_gr2, .after = gender)%>%
-  relocate(medea, .after = age_gr2)
-ir1 <-as.matrix(ir[,6:7])
+ir <- rbind(overall, sex)%>% arrange(covid, outcome)%>% relocate(denominator_sex, .after = outcome)%>%
+  relocate(denominator_age_group, .after = denominator_sex)
+  
+ir1 <-as.matrix(ir[,5:6])
 ci <- round(epi.conf(ir1, ctype = "inc.rate", method = "exact", N = 100000, design = 1, 
                conf.level = 0.95) * 100000,1)
 
 ir_ci <- cbind(ir, ci)
 ir_ci <- ir_ci %>% 
   mutate(ir = paste0(paste(est),"(", paste(lower), " to ", paste(upper), ")"))%>%
-  dplyr::select(covid, outcome, gender, age_gr2, medea, events_t, pmar, ir)%>%
+  dplyr::select(covid, outcome, denominator_sex, denominator_age_group, events_t, person_months_at_risk, ir)%>%
   arrange(covid, outcome)
 
-write.csv(ir_ci, "Summary of observed data/incidence_rates_rev.csv")
-rm(ci,gender, ir, ir_ci, ir1, overall,ses)
+
+write.csv(ir_ci, file=here("3_DataSummary", "Summary of observed data_incidence_rates.csv"))
+save(ir_ci, file=here("3_DataSummary", "Summary of observed data_incidence_rates.RData"))
+
+rm(ci,sex, ir, ir_ci, ir1, overall)
 
 
 
 overall.post <-IR.overall%>% 
-  filter(months.since.start >=29)%>%
-  group_by(outcome) %>% summarise( events_t = sum(events),pmar = sum(months),)
-age.gender.post <-IR.age_gender%>% 
-  filter(months.since.start >=29)%>%
-  group_by(outcome,age_gr2,gender) %>% summarise( events_t = sum(events),pmar = sum(months),)
-ses.post <-IR.ses%>% 
-  filter(months.since.start >=29)%>%
-  group_by(outcome,medea) %>% summarise( events_t = sum(events),pmar = sum(months),)%>%drop_na(medea)
+  filter(months.since.start >=31)%>%
+  group_by(outcome) %>% summarise( events_t = sum(events),person_months_at_risk = sum(months),)
+age.sex.post <-IR.age_sex%>% 
+  filter(months.since.start >=31)%>%
+  group_by(outcome,denominator_age_group,denominator_sex) %>% summarise( events_t = sum(events),person_months_at_risk = sum(months),)
+#ses.post <-IR.ses%>% 
+#  filter(months.since.start >=31)%>%
+#  group_by(outcome,medea) %>% summarise( events_t = sum(events),person_months_at_risk = sum(months),)%>%drop_na(medea)
 
-ir_post <- bind_rows(overall.post, age.gender.post,ses.post)%>% arrange( outcome)%>% relocate(gender, .after = outcome)%>%
-  relocate(age_gr2, .after = gender)%>%
-  relocate(medea, .after = age_gr2)
-ir1 <-as.matrix(ir_post[,5:6])
+ir_post <- bind_rows(overall.post, age.sex.post)%>% arrange( outcome)%>% relocate(denominator_sex, .after = outcome)%>%
+  relocate(denominator_age_group, .after = denominator_sex) #%>%
+ # relocate(medea, .after = age_gr2)
+ir1 <-as.matrix(ir_post[,4:5])
 ci <- round(epi.conf(ir1, ctype = "inc.rate", method = "exact", N = 100000, design = 1, 
                conf.level = 0.95) * 100000,1)
 
@@ -107,11 +106,15 @@ ir_ci <- cbind(ir_post, ci)
 ir.post_ci <- ir_ci %>% 
   mutate(ir = paste0(paste(est)," (", paste(lower), " to ", paste(upper), ")"))%>%
   mutate(covid="Post-lockdown")%>%
-  dplyr::select(covid,outcome, gender, age_gr2, medea, events_t, pmar, ir)%>%
+  dplyr::select(covid,outcome, denominator_sex, denominator_age_group, events_t, person_months_at_risk, ir)%>%
   arrange(covid, outcome)
 
-write.csv(ir.post_ci, "Summary of observed data/incidence_rates.post_rev.csv")
 
+
+write.csv(ir.post_ci, file=here("3_DataSummary", "Summary of observed data_incidence_rates_post_lockdown.csv"))
+save(ir.post_ci, file=here("3_DataSummary", "Summary of observed data_incidence_rates_post_lockdown.RData"))
+
+# upto here
 
 
 
@@ -170,7 +173,7 @@ IRR.overall <- IRR.overall %>% mutate(IRR = paste0(paste(IRR)," (", paste(IRR_lo
   dplyr::select(ref:IRR)
 
 #### INCIDENCE RATE RATIOS: AGE & GENDER-----------------
-IR <- IR.age_gender
+IR <- IR.age_sex
 #Seleccionem periodes d'interès
 #03-2020 al 03-2021 pandemia
 #03-2018 al 03-2019 referencia
@@ -238,7 +241,7 @@ IRR.age_gender <- IRR.age_gender %>% mutate(IRR = paste0(paste(IRR)," (", paste(
   dplyr::select(ref:IRR)
 
 #### INCIDENCE RATE RATIOS: GENDER----------------
-IR <- IR.gender
+IR <- IR.sex
 #Seleccionem periodes d'interès
 #03-2020 al 03-2021 pandemia
 #03-2018 al 03-2019 referencia

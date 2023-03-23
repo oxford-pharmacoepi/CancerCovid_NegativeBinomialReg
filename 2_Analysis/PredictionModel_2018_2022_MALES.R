@@ -154,6 +154,7 @@ write.csv(tab_male, file=here("4_Results", db.name, "Modelling", "Modelling_male
 write.csv(tab_age.male, file=here("4_Results", db.name, "Modelling", "age_male_red_table.csv"))
 save(prediction_age.male, file=here("4_Results", db.name,  "Modelling", "Prediction_age.male.RData"))
 save(tab_age.male, tab_male, file=here("4_Results", db.name,  "Modelling", "Modelling_age_male_nb.RData"))
+save(IR.age_male, file=here("4_Results", db.name,  "Modelling", "IR.age_male.RData"))
 
 
 rm(IR.age_gender, models.age_gender, models.age_gender_period, models.age_gender_pred,
