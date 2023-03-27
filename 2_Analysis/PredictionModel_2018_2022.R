@@ -161,6 +161,13 @@ Pretty_modelling_results_table <- flextable(table) %>% theme_vanilla() %>%
 
 save_as_docx('Table_Modelling_results' = Pretty_modelling_results_table, path=here("4_Results", db.name, "Modelling", "Table_Modelling_Results.docx"))
 
+
+# Further formatting of Table_modelling_results for paper 
+# Table X. Percentage reduction, and estimated underdiagnoses (missed counts) x 4 for each cancer
+
+# Breast cancer percentage reduction, and estimated underdiagnoses (missed counts)
+Breast_under_dx_perc_red_table <- Table_Modelling_Results %>% filter(Table_Modelling_Results$outcome=="Breast")
+
 ##### PLOTS--------
 
 # overall
