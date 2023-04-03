@@ -149,24 +149,96 @@ tab_age_sex <-tab_age_sex %>% mutate(strata=paste0(denominator_age_group, ",", d
   dplyr::select(-denominator_age_group, -denominator_sex)
 # tab_ses <-tab_ses %>%rename(strata=medea)
 
-table <- rbind(tab1, tab_sex ,tab_age_sex) %>% arrange(outcome, desc(strata), desc(value)) 
+tab1_perc_red_diagnoses_formatted <- tab1 %>% arrange(outcome)
+tab1_perc_red_diagnoses_formatted <- tab1_perc_red_diagnoses_formatted[c(1,10,2,8,3,4,5,6,7,9)]
+names(tab1_perc_red_diagnoses_formatted)[1] = "Cancer"
+names(tab1_perc_red_diagnoses_formatted)[2] = "Parameter"
+names(tab1_perc_red_diagnoses_formatted)[3] = "Lockdown (March 2020-June 2020)"
+names(tab1_perc_red_diagnoses_formatted)[4] = "Post-lockdown (July 2020-Dec 2021)"
+names(tab1_perc_red_diagnoses_formatted)[5] = "Post-lockdown 1 (July 2020-Oct 2020)"
+names(tab1_perc_red_diagnoses_formatted)[6] = "Second lockdown (Nov 2020-Dec 2020)"
+names(tab1_perc_red_diagnoses_formatted)[7] = "Third lockdown (Jan 2021-Feb 2021)"
+names(tab1_perc_red_diagnoses_formatted)[8] = "Easing of restrictions (March 2021-June 2021)"
+names(tab1_perc_red_diagnoses_formatted)[9] = "Legal restrictions removed (July 2021-Dec 2021)"
+names(tab1_perc_red_diagnoses_formatted)[10] = "Total (March 2020-Dec 2021)"
+tab1_perc_red_diagnoses_formatted <- tab1_perc_red_diagnoses_formatted %>% 
+                                      mutate(Parameter = case_when(Parameter == "Red_perc" ~ "Percent reduction",
+                                                                  Parameter == "Underdx" ~ "N underdiagnoses"))
 
-table <- table %>% relocate("value", .after= "outcome") %>% relocate("strata", .after= "outcome")
-
-write.csv(table, file=here("4_Results", db.name, "Modelling", "Table_Modelling_Results.csv"))
-
-Pretty_modelling_results_table <- flextable(table) %>% theme_vanilla() %>% 
+Pretty_modelling_results_overall_table <- flextable(tab1_perc_red_diagnoses_formatted) %>% theme_vanilla() %>% 
   set_caption(caption = "Number of cancer underdiagnoses and proportion reduced since pre-COVID, in each of the time periods") %>% 
   width(width = 1.4) 
 
-save_as_docx('Table_Modelling_results' = Pretty_modelling_results_table, path=here("4_Results", db.name, "Modelling", "Table_Modelling_Results.docx"))
+save_as_docx('Table_Modelling_overall_results' = Pretty_modelling_results_overall_table, path=here("4_Results", db.name, "Modelling", "Table_Modelling_Results_overall_perc_red.docx"))
 
+write.csv(tab1_perc_red_diagnoses_formatted, file=here("4_Results", db.name, "Modelling", "Table_Modelling_Overall_Results.csv"))
 
-# Further formatting of Table_modelling_results for paper 
+# create table with overall percent reduction and underdiagnosis counts joined with age and sex strata
+table <- rbind(tab1, tab_sex ,tab_age_sex) %>% arrange(outcome, desc(strata))
+
+age_sex_perc_red_diagnoses_formatted <- table[c(1,11,10,2,8,3,4,5,6,7,9)]
+names(age_sex_perc_red_diagnoses_formatted)[1] = "Cancer"
+names(age_sex_perc_red_diagnoses_formatted)[2] = "Sex/Age Group" 
+names(age_sex_perc_red_diagnoses_formatted)[3] = "Parameter"
+names(age_sex_perc_red_diagnoses_formatted)[4] = "Lockdown (March 2020-June 2020)"
+names(age_sex_perc_red_diagnoses_formatted)[5] = "Post-lockdown (July 2020-Dec 2021)"
+names(age_sex_perc_red_diagnoses_formatted)[6] = "Post-lockdown 1 (July 2020-Oct 2020)"
+names(age_sex_perc_red_diagnoses_formatted)[7] = "Second lockdown (Nov 2020-Dec 2020)"
+names(age_sex_perc_red_diagnoses_formatted)[8] = "Third lockdown (Jan 2021-Feb 2021)"
+names(age_sex_perc_red_diagnoses_formatted)[9] = "Easing of restrictions (March 2021-June 2021)"
+names(age_sex_perc_red_diagnoses_formatted)[10] = "Legal restrictions removed (July 2021-Dec 2021)"
+names(age_sex_perc_red_diagnoses_formatted)[11] = "Total (March 2020-Dec 2021)"
+age_sex_perc_red_diagnoses_formatted <- age_sex_perc_red_diagnoses_formatted %>% 
+  mutate(Parameter = case_when(Parameter == "Red_perc" ~ "Percent reduction",
+                               Parameter == "Red_perd" ~ "Percent reduction",
+                               Parameter == "Underdx" ~ "N underdiagnoses"))
+
+write.csv(age_sex_perc_red_diagnoses_formatted, file=here("4_Results", db.name, "Modelling", "Table_Modelling_age_sex_Results.csv"))
+
+Pretty_modelling_age_sex_results_table <- flextable(age_sex_perc_red_diagnoses_formatted) %>% theme_vanilla() %>% 
+  set_caption(caption = "Number of cancer underdiagnoses and proportion reduced since pre-COVID, in each of the time periods, stratified by age and sex") %>% 
+  width(width = 1.4) 
+
+save_as_docx('Table_Modelling_age_sex_results' = Pretty_modelling_age_sex_results_table, path=here("4_Results", db.name, "Modelling", "Table_Modelling_age_sex_Results.docx"))
+
 # Table X. Percentage reduction, and estimated underdiagnoses (missed counts) x 4 for each cancer
-
 # Breast cancer percentage reduction, and estimated underdiagnoses (missed counts)
-Breast_under_dx_perc_red_table <- Table_Modelling_Results %>% filter(Table_Modelling_Results$outcome=="Breast")
+
+breast_perc_red_diagnoses_formatted <- age_sex_perc_red_diagnoses_formatted %>% filter(Cancer=="Breast") 
+Breast_pretty_modelling_age_sex_results_table <- flextable(breast_perc_red_diagnoses_formatted) %>% theme_vanilla() %>% 
+  set_caption(caption = "Number of breast cancer underdiagnoses and proportion reduced since pre-COVID, in each of the time periods, stratified by age and sex") %>% 
+  width(width = 1.4) 
+
+save_as_docx('Breast_pretty_modelling_age_sex_results_table' = Breast_pretty_modelling_age_sex_results_table, path=here("4_Results", db.name, "Modelling", "breast_perc_red_diagnoses.docx"))
+
+# Colorectal cancer percentage reduction, and estimated underdiagnoses (missed counts)
+colorectal_perc_red_diagnoses_formatted <- age_sex_perc_red_diagnoses_formatted %>% filter(Cancer=="Colorectal")
+
+Colorectal_pretty_modelling_age_sex_results_table <- flextable(colorectal_perc_red_diagnoses_formatted) %>% theme_vanilla() %>% 
+  set_caption(caption = "Number of colorectal cancer underdiagnoses and proportion reduced since pre-COVID, in each of the time periods, stratified by age and sex") %>% 
+  width(width = 1.4) 
+
+save_as_docx('Colorectal_pretty_modelling_age_sex_results_table' = Colorectal_pretty_modelling_age_sex_results_table, path=here("4_Results", db.name, "Modelling", "colorectal_perc_red_diagnoses.docx"))
+
+
+# Lung cancer percentage reduction, and estimated underdiagnoses (missed counts)
+lung_perc_red_diagnoses_formatted <- age_sex_perc_red_diagnoses_formatted %>% filter(Cancer=="Lung")
+
+Lung_pretty_modelling_age_sex_results_table <- flextable(lung_perc_red_diagnoses_formatted) %>% theme_vanilla() %>% 
+  set_caption(caption = "Number of lung cancer underdiagnoses and proportion reduced since pre-COVID, in each of the time periods, stratified by age and sex") %>% 
+  width(width = 1.4) 
+
+save_as_docx('Lung_pretty_modelling_age_sex_results_table' = Lung_pretty_modelling_age_sex_results_table, path=here("4_Results", db.name, "Modelling", "lung_perc_red_diagnoses.docx"))
+
+# Prostate cancer percentage reduction, and estimated underdiagnoses (missed counts)
+prostate_perc_red_diagnoses_formatted <- age_sex_perc_red_diagnoses_formatted %>% filter(Cancer=="Prostate") 
+
+Prostate_pretty_modelling_age_sex_results_table <- flextable(prostate_perc_red_diagnoses_formatted) %>% theme_vanilla() %>% 
+  set_caption(caption = "Number of prostate cancer underdiagnoses and proportion reduced since pre-COVID, in each of the time periods, stratified by age and sex") %>% 
+  width(width = 1.4) 
+
+save_as_docx('Prostate_pretty_modelling_age_sex_results_table' = Prostate_pretty_modelling_age_sex_results_table, path=here("4_Results", db.name, "Modelling", "prostate_perc_red_diagnoses.docx"))
+
 
 ##### PLOTS--------
 

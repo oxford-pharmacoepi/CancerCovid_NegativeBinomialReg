@@ -58,7 +58,7 @@ IR.ses$covid <- as.factor(IR.ses$covid)
 IR.ses$covid <-relevel(IR.ses$covid, "Pre-COVID")
 
 
-#### INCIDENCE RATES-----------------
+#### INCIDENCE RATES TABLES FOR PAPER --------------------------------------- ##
 ## IR  by study period stratified by age, sex and SES
 
 overall <-IR.overall%>% group_by(covid, outcome) %>% summarise( events_t = sum(events),person_months_at_risk = sum(months),)
@@ -204,6 +204,7 @@ save(Prostate_observed_IR_results_table, file=here("3_DataSummary", "Summary of 
 write.csv(Prostate_observed_IR_results_table, file=here("3_DataSummary", "Summary of observed prostate_incidence_rates.csv"))
 
 save_as_docx('Pretty_prostate_observed_IR_results_table' = Pretty_prostate_observed_IR_results_table, path=here("3_DataSummary", "Summary of observed incidence rates-prostate.docx"))
+
 
 #### INCIDENCE RATE RATIOS: OVERALL----------------- THE IRR CALCULATE THE RELATIVE CHANGE IN THE INCIDENCE COMPARED TO A COMPARATOR GROUP
 # HERE WE COMPARE THE INCIDENCE RATE IN EACH OF THE STUDY PERIODS COMPARED TO THE TIME PERIOD BEFORE LOCKDOWN
