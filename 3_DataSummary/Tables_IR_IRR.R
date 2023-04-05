@@ -233,13 +233,13 @@ pt<- 2
 
 test <- c(events, pt)
 
-test1<- for (y in 1:length(outcome)){
+for (y in 1:length(outcome)){
   working.outcome <- outcome[y]
   for(z in 1:length(periods)){ 
     working.period <- periods[z]
     working.data <- IR %>% 
       filter(outcome==working.outcome)%>%
-      filter((covid==working.period)) %>%
+      filter(covid==working.period) %>%
       mutate(ref=if_else(months.since.start < 27,0,1))%>% # 26 indicates reference OF PRE-COVID
       group_by(ref)%>% #no function for final time period
       summarise( events_t = sum(events),person_months_at_risk = sum(months))%>%
@@ -249,20 +249,22 @@ test1<- for (y in 1:length(outcome)){
     events <- c(working.data%>%dplyr::select(events_t)%>%pull())
     pt <- c(working.data%>%dplyr::select(person_months_at_risk)%>%pull())
 
-    #vector <- c(events, pt)
-    #rateratios <-rateratio(vector, y=NULL) # this bit throws an error of nrow(x) object x not found
+    vector <- c(events, pt)
+    
+    rateratios <-rateratio(vector, y=NULL) # this bit throws an error of nrow(x) object x not found which is why i haven't run this
+    }
+  }
     
     IRR[[paste0(working.period, working.outcome)]]<- working.data %>%
       filter(period == working.period)%>%
-     # filter(outcome == working.outcome)%>%
+     filter(outcome == working.outcome)%>%
       filter(ref==1)
       mutate(IR = events_t/person_months_at_risk * 100000) #%>%
-      #mutate(IRR=round(rateratios$measure[2],2)) %>%
-      #mutate(IRR_low =round(rateratios$measure[2,2],2)) %>%
-      #mutate(IRR_upp =round(rateratios$measure[2,3],2))
+     mutate(IRR=round(rateratios$measure[2],2)) %>%
+      mutate(IRR_low =round(rateratios$measure[2,2],2)) %>%
+      mutate(IRR_upp =round(rateratios$measure[2,3],2))
     
-  }
-}
+
 
 IRR.overall <- bind_rows(IRR)
 IRR.overall <- IRR.overall %>% mutate(IRR = paste0(paste(IRR)," (", paste(IRR_low), " to ", paste(IRR_upp), ")")) %>%
