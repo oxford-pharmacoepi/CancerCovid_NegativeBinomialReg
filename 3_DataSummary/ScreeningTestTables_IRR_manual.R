@@ -378,9 +378,18 @@ IRR_BCSP <-  get_IR_df_function(rateratios_bowel_cancer_screen, "Bowel Cancer Sc
 IRR_table_screening_tests <- rbind(IRR_BCR, IRR_BB, IRR_Col, IRR_DPC, IRR_EB, IRR_LCR, IRR_Mam, IRR_PSA, IRR_SBC, IRR_SBS, IRR_SIG, IRR_BP)
 # REMOVE PRE-covid COLUMN
 IRR_table_screening_tests <- IRR_table_screening_tests[-1]
+# CONVERT THE ROWNAMES TO A NORMAL DATA COLUMN
+IRR_table_screening_tests <- tibble::rownames_to_column(IRR_table_screening_tests, "Screening/Diagnostic Test")
 
 
 #### Save IRR
 write.csv(IRR_table_screening_tests, file=here("3_DataSummary", "IRR_table_screening_tests.csv"))
+save(IRR_table_screening_tests, file=here("3_DataSummary", "IRR_table_screening_tests.RData"))
 
+#### Make pretty table
+Pretty_IRR_table_screening_tests <- flextable(IRR_table_screening_tests) %>% theme_vanilla() %>% 
+  set_caption(caption = "Incidence rate ratios of screening and diagnostic tests compared to pre-COVID period") %>% 
+  width(width = 1.4) 
+
+save_as_docx('Pretty_IRR_table_screening_tests' = Pretty_IRR_table_screening_tests, path=here("3_DataSummary", "Pretty_IRR_table_screening_tests.docx"))
 
