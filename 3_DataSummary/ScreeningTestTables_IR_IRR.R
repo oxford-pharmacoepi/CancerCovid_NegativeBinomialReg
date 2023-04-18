@@ -145,7 +145,7 @@ IR.overall$covid <-relevel(IR.overall$covid, "Pre-COVID")
 
 #### INCIDENCE RATES TABLES FOR PAPER --------------------------------------- ##
 
-
+#This gives you all the rates calculated in each of the time periods
 overall <-IR.overall%>% group_by(covid, outcome) %>% summarise( events_t = sum(events),person_months_at_risk = sum(months),)
 
 ir <- rbind(overall)%>% arrange(covid, outcome)
@@ -167,7 +167,7 @@ save(ir_ci, file=here("3_DataSummary", "Summary of observed data_incidence_rates
 rm(ci, ir, ir_ci, ir1, overall)
 
 
-# add combined periods post-lockdown
+# add combined periods post-lockdown - this gives you all the IR calculated anytime after lockdown.These are not averaged but caluclated
 overall.post <-IR.overall%>% 
   filter(months.since.start >=43)%>%
   group_by(outcome) %>% summarise( events_t = sum(events),person_months_at_risk = sum(months),)
@@ -227,66 +227,204 @@ save_as_docx('Pretty_observed_IR_results_table' = Pretty_observed_IR_results_tab
 
 IR <- IR.overall
 
+IR.overall$covid <- as.factor(IR.overall$covid)
+IR.overall$covid <-relevel(IR.overall$covid, "Pre-COVID")
+
 # Select periods of interest
 # the IR dataframe already has this information, so I don't need to do this.
-#IR <- IR %>% filter(months.since.start<=43|months.since.start>=48)
-#IR$covid[which((IR$months.since.start >= 27)& (IR$months.since.start <= 30))] <-"Lockdown"
-#IR$covid[which((IR$months.since.start >= 31)& (IR$months.since.start <= 34))] <-"Post-lockdown1"
-#IR$covid[which((IR$months.since.start >=35) & (IR$months.since.start <= 36))] <-"Second lockdown"
-#IR$covid[which((IR$months.since.start >= 37) & (IR$months.since.start <= 38))] <-"Third lockdown"
-#IR$covid[which((IR$months.since.start >= 39) & (IR$months.since.start <= 42))] <-"Easing of restrictions"
-#IR$covid[which((IR$months.since.start >= 43))] <-"Legal restrictions removed"
+#IR_test <- IR %>% filter(months.since.start<=60|months.since.start>=60)
+IR$covid[which((IR$months.since.start >= 39)& (IR$months.since.start <= 42))] <-"Lockdown"
+IR$covid[which((IR$months.since.start >= 43)& (IR$months.since.start <= 46))] <-"Post-lockdown1"
+IR$covid[which((IR$months.since.start >=47) & (IR$months.since.start <= 48))] <-"Second lockdown"
+IR$covid[which((IR$months.since.start >= 49) & (IR$months.since.start <= 50))] <-"Third lockdown"
+IR$covid[which((IR$months.since.start >= 51) & (IR$months.since.start <= 54))] <-"Easing of restrictions"
+IR$covid[which((IR$months.since.start >= 55) & (IR$months.since.start <= 60))] <-"Legal restrictions removed"
 
 IRR <- list()
 IRR_Ref <-list()
 periods<- IR%>% dplyr::select("covid")%>%distinct()%>%pull()
 year <- IR%>% dplyr::select("year")%>% distinct()%>%pull()
 outcome <-IR%>% dplyr::select("outcome")%>% distinct()%>%pull()
+vector <- data.frame(a=c(),b=c())
 #n <-0 # number of stratifications
 
-events <- 1
-pt<- 2
+events_test <- c(100,1000,1203,2340)
+pt_test<- c(1234,12345,24563,35645)
 
-test <- c(events, pt)
+test <- cbind(events_test, pt_test)
+rateratio_test <- rateratio(test, y=NULL)
 
-for (y in 1:length(outcome)){
-  working.outcome <- outcome[y]
+for (y in 1:length(outcome2)){
+  working.outcome <- outcome2[y]
   for(z in 1:length(periods)){ 
     working.period <- periods[z]
     working.data <- IR %>% 
       filter(outcome==working.outcome)%>%
       filter(covid==working.period) %>%
-      mutate(ref=if_else(months.since.start < 27,0,1))%>% # 26 indicates reference OF PRE-COVID
+      mutate(ref=if_else(months.since.start < 39,0,1))%>% # 26 indicates reference OF PRE-COVID
       group_by(ref)%>% #no function for final time period
       summarise( events_t = sum(events),person_months_at_risk = sum(months))%>%
-      mutate(period = paste(working.period))%>%
+      mutate(periods = paste(working.period))%>%
       mutate(outcome= paste(working.outcome))
     
     events <- c(working.data%>%dplyr::select(events_t)%>%pull())
     pt <- c(working.data%>%dplyr::select(person_months_at_risk)%>%pull())
     
+   # vector <- rbind(vector,c(events, pt))
     vector <- c(events, pt)
     
-    rateratios <-rateratio(vector, y=NULL) # this bit throws an error of nrow(x) object x not found which is why i haven't run this
+    rateratios <-rateratio(as.matrix(vector, y=NULL)) # this bit throws an error of nrow(x) object x not found which is why i haven't run this
+
+
+    IRR[[paste0(working.period, working.outcome)]]<- working.data %>%
+      filter(period == working.period)%>%
+      filter(outcome == working.outcome)%>%
+      filter(ref==1)%>%
+      mutate(IR = events_t/pmar * 100000) %>%
+      mutate(IRR=round(rateratios$measure[2],2)) %>%
+      mutate(IRR_low =round(rateratios$measure[2,2],2)) %>%
+      mutate(IRR_upp =round(rateratios$measure[2,3],2))
+    
   }
 }
 
-IRR[[paste0(working.period, working.outcome)]]<- working.data %>%
-  filter(period == working.period)%>%
-  filter(outcome == working.outcome)%>%
-  filter(ref==1)
-mutate(IR = events_t/person_months_at_risk * 100000) #%>%
+
+mutate(IR = events_t/person_months_at_risk * 100000)
+
+#%>%
 mutate(IRR=round(rateratios$measure[2],2)) %>%
   mutate(IRR_low =round(rateratios$measure[2,2],2)) %>%
   mutate(IRR_upp =round(rateratios$measure[2,3],2))
 
 
 
-IRR.overall <- bind_rows(IRR)
+IRR.overall_test <- bind_rows(IRR)
 IRR.overall <- IRR.overall %>% mutate(IRR = paste0(paste(IRR)," (", paste(IRR_low), " to ", paste(IRR_upp), ")")) %>%
   dplyr::select(ref:IRR)
 
 
+# test with just one outcome
+IR.overall$covid <- as.factor(IR.overall$covid)
+IR.overall$covid <-relevel(IR.overall$covid, "Pre-COVID")
+
+
+IR_breast_cancer_referrals <- IR.overall %>% filter(IR$outcome =="Breast Cancer Referrals")
+
+# Select periods of interest
+# the IR dataframe already has this information, so I don't need to do this.
+#IR_test <- IR %>% filter(months.since.start<=60|months.since.start>=60)
+IR$covid[which((IR$months.since.start >= 39)& (IR$months.since.start <= 42))] <-"Lockdown"
+IR$covid[which((IR$months.since.start >= 43)& (IR$months.since.start <= 46))] <-"Post-lockdown1"
+IR$covid[which((IR$months.since.start >=47) & (IR$months.since.start <= 48))] <-"Second lockdown"
+IR$covid[which((IR$months.since.start >= 49) & (IR$months.since.start <= 50))] <-"Third lockdown"
+IR$covid[which((IR$months.since.start >= 51) & (IR$months.since.start <= 54))] <-"Easing of restrictions"
+IR$covid[which((IR$months.since.start >= 55) & (IR$months.since.start <= 60))] <-"Legal restrictions removed"
+
+IRR <- list()
+IRR_Ref <-list()
+periods<- IR%>% dplyr::select("covid")%>%distinct()%>%pull()
+year <- IR%>% dplyr::select("year")%>% distinct()%>%pull()
+outcome <-IR%>% dplyr::select("outcome")%>% distinct()%>%pull()
+vector <- data.frame(a=c(),b=c())
+
+rateratios = vector("list",length(outcome));  names(rateratios)=outcome
+#n <-0 # number of stratifications
+
+
+for (c in 1:length(outcome)){
+  IRcancer <- IR.overall %>% filter(IR$outcome == outcome[c])
+  
+  
+for (z in 1:length(periods)){ 
+    working.period <- periods[z]
+    working.data <- IRcancer %>% 
+      filter(covid==working.period) %>%
+      mutate(ref=if_else(months.since.start < 39,0,1))%>% # 38 indicates reference OF PRE-COVID
+      group_by(ref)%>% #no function for final time period
+      summarise( events_t = sum(events),person_months_at_risk = sum(months))%>%
+      mutate(periods = paste(working.period))
+    
+    events <- c(working.data%>%dplyr::select(events_t)%>%pull())
+    pt <- c(working.data%>%dplyr::select(person_months_at_risk)%>%pull())
+    
+    vector <- rbind(vector,c(events, pt))
+}
+    
+    
+    rateratios[[c]] <-rateratio(as.matrix(vector)) # this bit throws an error of nrow(x) object x not found which is why i haven't run this
+}  
+    IRR[[paste0(working.period)]]<- working.data %>%
+      filter(period == working.period)%>%
+      filter(ref==1)%>%
+      mutate(IR = events_t/pmar * 100000) #%>%
+     # mutate(IRR=round(rateratios$measure[2],2)) %>%
+      #mutate(IRR_low =round(rateratios$measure[2,2],2)) %>%
+      #mutate(IRR_upp =round(rateratios$measure[2,3],2))
+    
+}
+mutate(IR = events_t/person_months_at_risk * 100000)
+
+#%>%
+mutate(IRR=round(rateratios$measure[2],2)) %>%
+  mutate(IRR_low =round(rateratios$measure[2,2],2)) %>%
+  mutate(IRR_upp =round(rateratios$measure[2,3],2))
+
+# find and extract the info you need from the list.
+rateratios[[1]]$measure
+
+# get the structure of the list
+str(rateratios[1])
+
+# get one of the lists
+rateratios[1]
 
 
 
+
+# test loop over all outcomes
+IR.overall <- screening_inc_data_final %>% mutate(Month1 =paste(1,month, year, sep ="-")) %>% filter(denominator_cohort_id ==1)
+
+IR <- IR.overall
+
+IRR <- list()
+IRR_Ref <-list()
+periods<- IR%>% dplyr::select("covid")%>%distinct()%>%pull()
+year <- IR%>% dplyr::select("year")%>% distinct()%>%pull()
+outcome <-IR%>% dplyr::select("outcome")%>% distinct()%>%pull()
+
+for (y in 1:length(outcome)){
+  working.outcome <- outcome[y]
+  for(z in 1:length(periods)){ 
+    if (nrow(IR %>% filter(outcome==outcome[y]) %>% 
+             filter(periods==covid[z]) %>% filter(outcome==outcomes_to_fit[j])) <1){ next }
+    # this should filter out combinations where there is no data and skip to the next iteration, but it doesn't 
+    
+    working.period <- periods[z]
+    working.data <- IR %>% 
+      filter(outcome==working.outcome)%>%
+      filter((covid==working.period)) %>%
+      mutate(ref=if_else(months.since.start < 39,0,1))%>% #zero indica ref
+      group_by(ref)%>% #no funcionara per ultim trimestre
+      summarise( events_t = sum(events),pmar = sum(months))%>%
+      mutate(period = paste(working.period))%>%
+      mutate(outcome= paste(working.outcome))
+    
+    events <- c(working.data%>%dplyr::select(events_t)%>%pull())
+    pt <- c(working.data%>%dplyr::select(pmar)%>%pull())
+    vector <- c(events, pt)
+    rateratios <-rateratio(vector)
+    
+    IRR[[paste0(working.period, working.outcome)]]<- working.data %>%
+      filter(period == working.period)%>%
+      # filter(outcome == working.outcome)%>%
+      filter(ref==1)%>%
+      mutate(IR = events_t/pmar * 100000) %>%
+      mutate(IRR=round(rateratios$measure[2],2)) %>%
+      mutate(IRR_low =round(rateratios$measure[2,2],2)) %>%
+      mutate(IRR_upp =round(rateratios$measure[2,3],2))
+    
+  }
+}
+
+
+rateratios <-rateratio(as.matrix(vector, y=NULL))
