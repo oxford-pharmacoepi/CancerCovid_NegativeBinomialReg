@@ -28,7 +28,40 @@ missed_diagnoses_add <- cbind(missed_diagnoses, Lockdown_extrapolated, Post_lock
                               Third_lockdown_extrapolated, Easing_restrictions_extrapolated, Legal_restrictions_removed_extrapolated, Total_extrapolated)
 
 # Remove superfluous columns
-missed_diagnoses_extrapolated <- missed_diagnoses_add[-c(5:12)]
+missed_diagnoses_extrapolated <- missed_diagnoses_add[-c(1,5:12)]
 
+# convert the lockdown period columns to numeric
+missed_diagnoses_extrapolated <- missed_diagnoses_extrapolated %>%  mutate_at(vars(Lockdown_extrapolated,Post_lockdown_extrapolated,
+                                                                                   Post_lockdown1_extrapolated,Second_lockdown_extrapolated,
+                                                                                   Third_lockdown_extrapolated,Easing_restrictions_extrapolated,
+                                                                                   Legal_restrictions_removed_extrapolated,Total_extrapolated), as.numeric)
 # multiply columns by 21.59 to extrapolate counts to total population of UK
-missed_diagnoses_extrapolated <-
+missed_diagnoses_extrapolated <- missed_diagnoses_extrapolated %>%  mutate(across(where(is.numeric), function(x) x * 21.59))
+
+
+#### Save csv and rdata file of all extrapolated counts
+write.csv(missed_diagnoses_extrapolated, file=here("4_Results", db.name, "Modelling", "missed_diagnoses_extrapolated.csv"))
+save(missed_diagnoses_extrapolated, file=here("4_Results", db.name, "Modelling", "missed_diagnoses_extrapolated.RData"))
+
+#### Make pretty table
+Pretty_missed_diagnoses_extrapolated <- flextable(missed_diagnoses_extrapolated) %>% theme_vanilla() %>% 
+  set_caption(caption = "Number of underdiagnosed cancer cases, extrapolated to the UK general population, for each cancer, over each lockdown period, stratified by age and sex") %>% 
+  width(width = 1.4) 
+
+save_as_docx('Pretty_missed_diagnoses_extrapolated' = Pretty_missed_diagnoses_extrapolated, path=here("4_Results", db.name, "Modelling", "missed_diagnoses_extrapolated-stratified.docx"))
+
+
+# table of overall results not stratified by age and sex
+missed_diagnoses_extrapolated_overall <- missed_diagnoses_extrapolated %>% filter(missed_diagnoses_extrapolated$Sex.Age.Group=="overall")
+
+#### Save csv and rdata file of all extrapolated counts
+write.csv(missed_diagnoses_extrapolated_overall, file=here("4_Results", db.name, "Modelling", "missed_diagnoses_extrapolated_overall.csv"))
+save(missed_diagnoses_extrapolated_overall, file=here("4_Results", db.name, "Modelling", "missed_diagnoses_extrapolated_overall.RData"))
+
+#### Make pretty table
+Pretty_missed_diagnoses_extrapolated_overall <- flextable(missed_diagnoses_extrapolated_overall) %>% theme_vanilla() %>% 
+  set_caption(caption = "Number of underdiagnosed cancer cases, extrapolated to the UK general population, for each cancer, over each lockdown period") %>% 
+  width(width = 1.4) 
+
+save_as_docx('Pretty_missed_diagnoses_extrapolated_overall' = missed_diagnoses_extrapolated_overall, path=here("4_Results", db.name, "Modelling", "missed_diagnoses_extrapolated_overall.docx"))
+
