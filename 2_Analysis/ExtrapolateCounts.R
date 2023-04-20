@@ -37,7 +37,7 @@ missed_diagnoses_extrapolated <- missed_diagnoses_extrapolated %>%  mutate_at(va
                                                                                    Legal_restrictions_removed_extrapolated,Total_extrapolated), as.numeric)
 # multiply columns by 21.59 to extrapolate counts to total population of UK
 missed_diagnoses_extrapolated <- missed_diagnoses_extrapolated %>%  mutate(across(where(is.numeric), function(x) x * 21.59))
-
+missed_diagnoses_extrapolated <- missed_diagnoses_extrapolated %>%  mutate_if(is.numeric, round, digits=0)
 
 #### Save csv and rdata file of all extrapolated counts
 write.csv(missed_diagnoses_extrapolated, file=here("4_Results", db.name, "Modelling", "missed_diagnoses_extrapolated.csv"))
@@ -63,5 +63,5 @@ Pretty_missed_diagnoses_extrapolated_overall <- flextable(missed_diagnoses_extra
   set_caption(caption = "Number of underdiagnosed cancer cases, extrapolated to the UK general population, for each cancer, over each lockdown period") %>% 
   width(width = 1.4) 
 
-save_as_docx('Pretty_missed_diagnoses_extrapolated_overall' = missed_diagnoses_extrapolated_overall, path=here("4_Results", db.name, "Modelling", "missed_diagnoses_extrapolated_overall.docx"))
+save_as_docx('Pretty_missed_diagnoses_extrapolated_overall' = Pretty_missed_diagnoses_extrapolated_overall, path=here("4_Results", db.name, "Modelling", "missed_diagnoses_extrapolated_overall.docx"))
 

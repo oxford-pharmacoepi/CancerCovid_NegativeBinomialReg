@@ -392,7 +392,7 @@ overall_Breast <- val_overall %>% filter(outcome=="Breast")%>%
   geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
   scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
   
-  scale_x_date(date_labels = "%b %Y", date_breaks = "3 month", limits= c(as.Date("2017-01-01"),as.Date("2020-03-01")),expand=c(0.005,0.005))+
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 month", limits= c(as.Date("2017-01-01"),as.Date("2020-03-01")),expand=c(0.005,0.005))+
   theme_bw()+
   theme(axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
@@ -402,9 +402,10 @@ overall_Breast <- val_overall %>% filter(outcome=="Breast")%>%
 
 overall_Breast <- overall_Breast + 
   theme(axis.text.x = element_text(angle=90), 
-        axis.title.y = element_text(size = 9),    
-        plot.margin=grid::unit(c(1,1,0,1), "cm"))+
-  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
+        axis.title.y = element_text(size = 14),    
+        plot.margin=grid::unit(c(1,1,0,1), "cm"),
+        legend.text = element_text(size = 14))+
+  #geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
   ylab("Incidence rate per 100,000 person-months")+
   xlab("")#+
 #ggtitle("Expected vs. Observed incidence rates for breast cancer from validation model")
@@ -420,7 +421,7 @@ overall_Colorectal <- val_overall %>% filter(outcome=="Colorectal")%>%
   geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
   scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
   
-  scale_x_date(date_labels = "%b %Y", date_breaks = "3 month", limits= c(as.Date("2017-01-01"),as.Date("2020-03-01")),expand=c(0.005,0.005))+
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 month", limits= c(as.Date("2017-01-01"),as.Date("2020-03-01")),expand=c(0.005,0.005))+
   theme_bw()+
   theme(axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
@@ -430,9 +431,10 @@ overall_Colorectal <- val_overall %>% filter(outcome=="Colorectal")%>%
 
 overall_Colorectal <- overall_Colorectal + 
   theme(axis.text.x = element_text(angle=90), 
-        axis.title.y = element_text(size = 9),    
-        plot.margin=grid::unit(c(1,1,0,1), "cm"))+
-  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
+        axis.title.y = element_text(size = 14),    
+        plot.margin=grid::unit(c(1,1,0,1), "cm"),
+        legend.text = element_text(size = 14))+
+ # geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
   ylab("Incidence rate per 100,000 person-months")+
   xlab("")#+
 #ggtitle("Expected vs. Observed incidence rates for colorectal cancer from validation model")
@@ -449,7 +451,7 @@ overall_Lung <- val_overall %>% filter(outcome=="Lung")%>%
   geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
   scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
   
-  scale_x_date(date_labels = "%b %Y", date_breaks = "3 month", limits= c(as.Date("2017-01-01"),as.Date("2020-03-01")),expand=c(0.005,0.005))+
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 month", limits= c(as.Date("2017-01-01"),as.Date("2020-03-01")),expand=c(0.005,0.005))+
   theme_bw()+
   theme(axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
@@ -459,9 +461,10 @@ overall_Lung <- val_overall %>% filter(outcome=="Lung")%>%
 
 overall_Lung <- overall_Lung + 
   theme(axis.text.x = element_text(angle=90), 
-        axis.title.y = element_text(size = 9),    
-        plot.margin=grid::unit(c(1,1,0,1), "cm"))+
-  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
+        axis.title.y = element_text(size = 14),    
+        plot.margin=grid::unit(c(1,1,0,1), "cm"),
+        legend.text = element_text(size = 14))+
+ # geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
   ylab("Incidence rate per 100,000 person-months")+
   xlab("")#+
 #ggtitle("Expected vs. Obsereved incidence rates for Lung cancer from validation model")
@@ -477,7 +480,7 @@ overall_Prostate <- val_overall %>% filter(outcome=="Prostate")%>%
   geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
   scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
   
-  scale_x_date(date_labels = "%b %Y", date_breaks = "3 month", limits= c(as.Date("2017-01-01"),as.Date("2020-03-01")),expand=c(0.005,0.005))+
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 month", limits= c(as.Date("2017-01-01"),as.Date("2020-03-01")),expand=c(0.005,0.005))+
   theme_bw()+
   theme(axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
@@ -487,9 +490,10 @@ overall_Prostate <- val_overall %>% filter(outcome=="Prostate")%>%
 
 overall_Prostate <- overall_Prostate + 
   theme(axis.text.x = element_text(angle=90), 
-        axis.title.y = element_text(size = 9),    
-        plot.margin=grid::unit(c(1,1,0,1), "cm"))+
-  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
+        axis.title.y = element_text(size = 14),    
+        plot.margin=grid::unit(c(1,1,0,1), "cm"),
+        legend.text = element_text(size = 14))+
+  #geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
   ylab("Incidence rate per 100,000 person-months")+
   xlab("")#+
 #ggtitle("Expected vs. Observed incidence rates for prostate cancer from validation model")
@@ -501,7 +505,7 @@ figure_Validation_overall<-ggarrange(overall_Breast, overall_Colorectal, overall
                           common.legend=TRUE, legend="right" )
 
 # Save
-ggsave(here("4_Results", db.name, "Plots", "Figure_1_validation_overall.jpg"), figure_Validation_overall, dpi=300, scale = 1, width = 12, height = 9)
+ggsave(here("4_Results", db.name, "Plots", "Figure_1_Validation_overall.jpg"), figure_Validation_overall, dpi=600, scale = 1.25,  width = 16, height = 10)
 
 
 
@@ -515,13 +519,15 @@ age_female_Breast <- val_age_sex  %>%
   facet_grid(denominator_age_group~denominator_sex,scales="free")+
   geom_point(aes(Date,ir_m, colour= "Observed"))+
   geom_line(aes(Date,ir_m,colour= "Observed"))+
+  theme(strip.text.x = element_text(size = 16))+
+  theme(strip.text.y = element_text(size = 16))+
   
   geom_point(aes(Date,ir_pred,colour= "Expected"))+
   geom_line(aes(Date,ir_pred,colour= "Expected"))+
   geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
   scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
   
-  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
+  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month", limits= c(as.Date("2017-01-01"),as.Date("2020-03-01")),expand=c(0.005,0.005))+
   theme_bw() +
   theme(axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
@@ -530,9 +536,10 @@ age_female_Breast <- val_age_sex  %>%
 
 age_female_Breast <-age_female_Breast+ 
   theme(axis.text.x = element_text(angle=90),
-        axis.title.y = element_text(size = 9),
-        plot.margin=grid::unit(c(1,0.5,0,1), "cm") )+
-  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
+        axis.title.y = element_text(size = 14),
+        plot.margin=grid::unit(c(1,0.5,0,1), "cm"),
+        legend.text = element_text(size = 14))+
+ # geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
   ylab("Incidence rate per 100,000 person-months")+
   xlab("")
 
@@ -544,13 +551,15 @@ age_sex_Colorectal <- val_age_sex  %>%
   facet_grid(denominator_age_group~denominator_sex,scales="free")+
   geom_point(aes(Date,ir_m, colour= "Observed"))+
   geom_line(aes(Date,ir_m,colour= "Observed"))+
+  theme(strip.text.x = element_text(size = 16))+
+  theme(strip.text.y = element_text(size = 16))+
   
   geom_point(aes(Date,ir_pred,colour= "Expected"))+
   geom_line(aes(Date,ir_pred,colour= "Expected"))+
   geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
   scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
   
-  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
+  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month", limits= c(as.Date("2017-01-01"),as.Date("2020-03-01")),expand=c(0.005,0.005))+
   theme_bw() +
   theme(axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
@@ -559,9 +568,10 @@ age_sex_Colorectal <- val_age_sex  %>%
 
 age_sex_Colorectal <-age_sex_Colorectal+ 
   theme(axis.text.x = element_text(angle=90),
-        axis.title.y = element_text(size = 9),
-        plot.margin=grid::unit(c(1,0.5,0,1), "cm") )+
-  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
+        axis.title.y = element_text(size = 14),
+        plot.margin=grid::unit(c(1,0.5,0,1), "cm"),
+        legend.text = element_text(size = 14))+
+  #geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
   ylab("Incidence rate per 100,000 person-months")+
   xlab("")
 
@@ -573,13 +583,15 @@ age_sex_Lung <- val_age_sex  %>%
   facet_grid(denominator_age_group~denominator_sex,scales="free")+
   geom_point(aes(Date,ir_m, colour= "Observed"))+
   geom_line(aes(Date,ir_m,colour= "Observed"))+
+  theme(strip.text.x = element_text(size = 16))+
+  theme(strip.text.y = element_text(size = 16))+
   
   geom_point(aes(Date,ir_pred,colour= "Expected"))+
   geom_line(aes(Date,ir_pred,colour= "Expected"))+
   geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
   scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
   
-  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
+  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month", limits= c(as.Date("2017-01-01"),as.Date("2020-03-01")),expand=c(0.005,0.005))+
   theme_bw() +
   theme(axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
@@ -588,9 +600,10 @@ age_sex_Lung <- val_age_sex  %>%
 
 age_sex_Lung <-age_sex_Lung+ 
   theme(axis.text.x = element_text(angle=90),
-        axis.title.y = element_text(size = 9),
-        plot.margin=grid::unit(c(1,0.5,0,1), "cm") )+
-  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
+        axis.title.y = element_text(size = 14),
+        plot.margin=grid::unit(c(1,0.5,0,1), "cm"),
+        legend.text = element_text(size = 14))+
+  #geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
   ylab("Incidence rate per 100,000 person-months")+
   xlab("")
 
@@ -603,13 +616,15 @@ age_male_Prostate <- val_age_sex  %>%
   facet_grid(denominator_age_group~denominator_sex,scales="free")+
   geom_point(aes(Date,ir_m, colour= "Observed"))+
   geom_line(aes(Date,ir_m,colour= "Observed"))+
+  theme(strip.text.x = element_text(size = 16))+
+  theme(strip.text.y = element_text(size = 16))+
   
   geom_point(aes(Date,ir_pred,colour= "Expected"))+
   geom_line(aes(Date,ir_pred,colour= "Expected"))+
   geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
   scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
   
-  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
+  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month", limits= c(as.Date("2017-01-01"),as.Date("2020-03-01")),expand=c(0.005,0.005))+
   theme_bw() +
   theme(axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
@@ -618,9 +633,10 @@ age_male_Prostate <- val_age_sex  %>%
 
 age_male_Prostate <-age_male_Prostate+ 
   theme(axis.text.x = element_text(angle=90),
-        axis.title.y = element_text(size = 9),
-        plot.margin=grid::unit(c(1,0.5,0,1), "cm") )+
-  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
+        axis.title.y = element_text(size = 14),
+        plot.margin=grid::unit(c(1,0.5,0,1), "cm"),
+        legend.text = element_text(size = 14))+
+  #geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
   ylab("Incidence rate per 100,000 person-months")+
   xlab("")
 
@@ -631,7 +647,7 @@ figure_age_gender <-ggarrange(age_female_Breast, age_sex_Colorectal, age_sex_Lun
                               hjust = c(-0.25,-0.25),
                               common.legend=TRUE, legend="right" )
 
-ggsave(here("4_Results", db.name, "Plots", "Figure_2_validation_age_gender.jpg"), figure_age_gender, dpi=300, scale = 1.25,  width = 16, height = 10)
+ggsave(here("4_Results", db.name, "Plots", "Figure_2_validation_age_gender.jpg"), figure_age_gender, dpi=600, scale = 1.25,  width = 16, height = 10)
 
 
 # add this when we have the SES data

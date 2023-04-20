@@ -6,7 +6,7 @@
 load(here("1_DataPrep", "Data", "GeneralPop2018_22.RData"))
 
 
-## SET UP FOR RUNNING PREDICTION MODEL FOR femaleS AND FEfemaleS SEPARATELY
+## SET UP FOR RUNNING PREDICTION MODEL FOR femaleS SEPARATELY
 
 IR.age_female <- inc_data_pred_final %>%  mutate(Month1 =paste(1,month, year, sep ="-"))  %>% filter(denominator_sex =="Female")
 
@@ -635,3 +635,175 @@ ggsave(here("4_Results", db.name, "Plots", "Figure_2_prediction_age_sex.jpg"), f
 rm(figure_prediction_overall, figure_age_gender,figure_ses, prediction_age.gender,predicion_overall, predicition_ses, 
    end_mod, j, outcomes_to_fit)
  
+
+
+
+
+
+## ================ PLOTS BY AGE AND SEX ================================= ##
+## ================ EDITED FOR PAPER     ================================= ##
+
+# Age and sex
+# Breast
+#prediction_age.gender$denominator_sex <- factor(prediction_age.gender$denominator_sex, levels=rev(levels(prediction_age.gender$denominator_sex)))
+#levels(prediction_age.gender$denominator_sex) <- c("Female", "Male")
+#levels(prediction_age.gender$denominator_age_group) <- c("20;39", "40;59", "60;79", "0;150", "80;150")
+
+age_sex_Breast <- prediction_age.sex  %>% 
+  filter(outcome=="Breast") %>% 
+  ggplot()+
+  facet_grid(denominator_age_group~denominator_sex,scales="free")+
+  geom_point(aes(Date,ir_m, colour= "Observed"))+
+  geom_line(aes(Date,ir_m,colour= "Observed"))+
+  theme(strip.text.x = element_text(size = 16))+
+  theme(strip.text.y = element_text(size = 16))+
+  
+  geom_point(aes(Date,ir_pred,colour= "Expected"))+
+  geom_line(aes(Date,ir_pred,colour= "Expected"))+
+  geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
+  scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
+  
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 month", limits= c(as.Date("2020-03-01"),as.Date("2021-11-01")),expand=c(0.005,0.005))+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+  )
+
+age_sex_Breast <-age_sex_Breast+ 
+  theme(axis.text.x = element_text(angle=90),
+        axis.title.y = element_text(size = 14),
+        plot.margin=grid::unit(c(1,0.5,0,1), "cm"),
+        legend.text = element_text(size = 14))+
+  
+  #scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
+  ylab("Incidence rate per 100,000 person-months")+
+  xlab("")
+
+age_sex_Breast
+
+
+# Colorectal
+
+age_sex_Colorectal <- prediction_age.sex  %>% 
+  filter(outcome=="Colorectal") %>% 
+  ggplot()+
+  facet_grid(denominator_age_group~denominator_sex,scales="free")+
+  geom_point(aes(Date,ir_m, colour= "Observed"))+
+  geom_line(aes(Date,ir_m,colour= "Observed"))+
+  theme(strip.text.x = element_text(size = 16))+
+  theme(strip.text.y = element_text(size = 16))+
+  
+  geom_point(aes(Date,ir_pred,colour= "Expected"))+
+  geom_line(aes(Date,ir_pred,colour= "Expected"))+
+  geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
+  scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
+  
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 month", limits= c(as.Date("2020-03-01"),as.Date("2021-11-01")),expand=c(0.005,0.005))+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+  )
+
+age_sex_Colorectal <-age_sex_Colorectal+ 
+  theme(axis.text.x = element_text(angle=90),
+        axis.title.y = element_text(size = 14),
+        plot.margin=grid::unit(c(1,0.5,0,1), "cm"),
+        legend.text = element_text(size = 14))+
+  ylab("Incidence rate per 100,000 person-months")+
+  xlab("")
+
+age_sex_Colorectal
+
+
+
+# Lung
+
+age_sex_Lung <- prediction_age.sex  %>% 
+  filter(outcome=="Lung") %>% 
+  ggplot()+
+  facet_grid(denominator_age_group~denominator_sex,scales="free")+
+  geom_point(aes(Date,ir_m, colour= "Observed"))+
+  geom_line(aes(Date,ir_m,colour= "Observed"))+
+  theme(strip.text.x = element_text(size = 16))+
+  theme(strip.text.y = element_text(size = 16))+
+  
+  geom_point(aes(Date,ir_pred,colour= "Expected"))+
+  geom_line(aes(Date,ir_pred,colour= "Expected"))+
+  geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
+  scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
+  
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 month", limits= c(as.Date("2020-03-01"),as.Date("2021-11-01")),expand=c(0.005,0.005))+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+  )
+
+age_sex_Lung <-age_sex_Lung+ 
+  theme(axis.text.x = element_text(angle=90),
+        axis.title.y = element_text(size = 14),
+        plot.margin=grid::unit(c(1,0.5,0,1), "cm"),
+        legend.text = element_text(size = 14))+
+
+  ylab("Incidence rate per 100,000 person-months")+
+  xlab("")
+
+age_sex_Lung
+
+
+
+# Prostate
+
+age_sex_Prostate <- prediction_age.sex  %>% 
+  filter(outcome=="Prostate") %>% 
+  ggplot()+
+  facet_grid(denominator_age_group~denominator_sex,scales="free")+
+  geom_point(aes(Date,ir_m, colour= "Observed"))+
+  geom_line(aes(Date,ir_m,colour= "Observed"))+
+  theme(strip.text.x = element_text(size = 16))+
+  theme(strip.text.y = element_text(size = 16))+
+  
+  geom_point(aes(Date,ir_pred,colour= "Expected"))+
+  geom_line(aes(Date,ir_pred,colour= "Expected"))+
+  geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
+  scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
+  
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 month", limits= c(as.Date("2020-03-01"),as.Date("2021-11-01")),expand=c(0.005,0.005))+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+  )
+
+age_sex_Prostate <-age_sex_Prostate+ 
+  theme(axis.text.x = element_text(angle=90),
+        axis.title.y = element_text(size = 14),
+        plot.margin=grid::unit(c(1,0.5,0,1), "cm"),
+        legend.text = element_text(size = 14))+
+
+  ylab("Incidence rate per 100,000 person-months")+
+  xlab("")
+
+age_sex_Prostate
+
+## COMBINE PLOTS
+
+figure_modelling_age_sex_march2020 <-ggarrange(age_sex_Breast, age_sex_Colorectal, age_sex_Lung, age_sex_Prostate,
+                                     align="hv", ncol=2, nrow=2,
+                                     labels = c("A) Breast Cancer", "B) Colorectal Cancer", "C) Lung Cancer", "D) Prostate Cancer"),font.label = list(size = 12),
+                                     hjust = c(-0.25,-0.25),
+                                     common.legend=TRUE, legend="right" )
+
+figure_modelling_age_sex_march2020
+
+
+ggsave(here("4_Results", db.name, "Plots", "Figure_2_modelling_age_sex_march2020.jpg"), figure_modelling_age_sex_march2020, dpi=300, scale = 1.25,  width = 16, height = 10)
+ggsave(here("4_Results", db.name, "Plots", "Figure_2_modelling_age_sex_march2020.tiff"), figure_modelling_age_sex_march2020, dpi=300, scale = 1.25,  width = 16, height = 10)
+
+
+
+
+rm(figure_prediction_overall, figure_age_gender,figure_ses, prediction_age.gender,predicion_overall, predicition_ses, 
+   end_mod, j, outcomes_to_fit)

@@ -225,8 +225,6 @@ rateratios_prostate <-rateratio(as.matrix(vector, y=NULL))
 
 
 
-
-
 ################################################################################
 
 # FUNCTION TO EXTRACT ALL THE IRR AND CIS FROM ALL OF THE LISTS 
@@ -283,3 +281,57 @@ Pretty_IRR_table_cancer <- flextable(IRR_table_cancer) %>% theme_vanilla() %>%
 
 save_as_docx('Pretty_IRR_table_cancer' = Pretty_IRR_table_cancer, path=here("3_DataSummary", "Pretty_IRR_table_cancer.docx"))
 
+
+
+# ============== CREATE FOREST PLOT OF INCIDENCE RATE RATIOS ================= #
+
+# Format the data. First create table with the estimates and CIs in separate columns
+# FUNCTION TO EXTRACT ALL THE IRR AND CIS FROM ALL OF THE LISTS 
+
+get_IR_df_function_CIs_Sep <- function(yourrateratiosname, title){
+  
+  Cancer <- c(title)
+  IR_CIS <- as.data.frame(yourrateratiosname[[2]])
+  IR_CIS <- IR_CIS %>% mutate_if(is.numeric, round, digits=2)
+  IR_CIS <-cbind(Cancer, periods, IR_CIS)
+
+  return(IR_CIS)
+}
+
+# RUN THE FUNCTION FOR EACH OF THE RATERATIO LISTS
+
+IRR_Breast_CIs_Sep <-  get_IR_df_function_CIs_Sep(rateratios_breast, "Breast")
+IRR_Colorectal_CIs_Sep <-  get_IR_df_function_CIs_Sep(rateratios_colorectal, "Colorectal")
+IRR_Lung_CIs_Sep <- get_IR_df_function_CIs_Sep(rateratios_lung, "Lung") 
+IRR_Prostate_CIs_Sep <-  get_IR_df_function_CIs_Sep(rateratios_prostate, "Prostate")
+
+# JOIN THE RATIO OUTPUTS
+IRR_FOREST <- rbind(IRR_Breast_CIs_Sep, IRR_Colorectal_CIs_Sep, IRR_Lung_CIs_Sep, IRR_Prostate_CIs_Sep)
+# filter out pre-covid 
+IRR_FOREST <- IRR_FOREST %>% filter(periods !="Pre-COVID")
+
+IRR_FOREST <- IRR_FOREST  %>%
+                    mutate(periods = factor(periods, levels=c("Lockdown", "Post-lockdown1", "Second lockdown", 
+                                              "Third lockdown", "Easing of restrictions", "Legal restrictions removed")) )
+IRR_forest_cancer =
+  ggplot(data=IRR_FOREST, aes(x = periods,y = estimate, ymin = lower, ymax = upper ))+
+  geom_pointrange(aes(col=periods))+
+  geom_hline(aes(fill=periods),yintercept =1, linetype=2)+
+  xlab('Cancer')+ ylab("Incidence Rate Ratio (95% Confidence Interval)")+
+  geom_errorbar(aes(ymin=lower, ymax=upper,col=periods),width=0.5,cex=1)+ 
+  facet_wrap(~Cancer,strip.position="left",nrow=4,scales = "free_y") +
+  theme(plot.title=element_text(size=16,face="bold"),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.text.x=element_text(face="bold"),
+        axis.title=element_text(size=12,face="bold"),
+        strip.text.y = element_text(hjust=0,vjust = 1,angle=180,face="bold"))+
+  coord_flip()
+
+IRR_forest_cancer + labs(fill = "COVID Period")
+IRR_forest_cancer
+
+# Save
+
+ggsave(here("4_Results", db.name, "Plots", "IRR_forest_cancer.tiff"), IRR_forest_cancer, dpi=600, scale = 1,  width = 10, height = 8)
+ggsave(here("4_Results", db.name, "Plots", "IRR_forest_cancer.jpg"), IRR_forest_cancer, dpi=600, scale = 1,  width = 10, height = 8)

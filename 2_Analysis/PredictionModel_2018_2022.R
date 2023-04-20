@@ -173,7 +173,12 @@ save_as_docx('Table_Modelling_overall_results' = Pretty_modelling_results_overal
 
 write.csv(tab1_perc_red_diagnoses_formatted, file=here("4_Results", db.name, "Modelling", "Table_Modelling_Overall_Results.csv"))
 
+
+# DO THIS NET PART ONCE YOU HAVE RUN THE AGE AND SEX ANALYSES IN THE SEPARATE SEX PREDICTION SCRIPTS
 # create table with overall percent reduction and underdiagnosis counts joined with age and sex strata
+# note that the female and male rows add up the age group of 0-150 as well as all the age strata, so
+# is adding twice, so don't use this row. Present the row of female 0-150 and male 0-150 
+# when writing the paper
 table <- rbind(tab1, tab_sex ,tab_age_sex) %>% arrange(outcome, desc(strata))
 
 age_sex_perc_red_diagnoses_formatted <- table[c(1,11,10,2,8,3,4,5,6,7,9)]
@@ -255,7 +260,7 @@ overall_prediction_Breast <- prediction_overall %>% filter(outcome=="Breast")%>%
   geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
   scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
   
-  scale_x_date(date_labels = "%b %Y", date_breaks = "3 month", limits= c(as.Date("2018-01-01"),as.Date("2021-12-01")),expand=c(0.005,0.005))+
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 month", limits= c(as.Date("2018-01-01"),as.Date("2021-11-01")),expand=c(0.005,0.005))+
   theme_bw()+
   theme(axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
@@ -265,8 +270,9 @@ overall_prediction_Breast <- prediction_overall %>% filter(outcome=="Breast")%>%
 
 overall_prediction_Breast <- overall_prediction_Breast + 
   theme(axis.text.x = element_text(angle=90), 
-        axis.title.y = element_text(size = 9),    
-        plot.margin=grid::unit(c(1,1,0,1), "cm"))+
+        axis.title.y = element_text(size = 14),    
+        plot.margin=grid::unit(c(1,1,0,1), "cm"),
+        legend.text = element_text(size = 14))+
   geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
   ylab("Incidence rate per 100,000 person-months")+
   xlab("") #+
@@ -283,7 +289,7 @@ overall_prediction_Colorectal <- prediction_overall %>% filter(outcome=="Colorec
   geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
   scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
   
-  scale_x_date(date_labels = "%b %Y", date_breaks = "3 month", limits= c(as.Date("2018-01-01"),as.Date("2021-12-01")),expand=c(0.005,0.005))+
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 month", limits= c(as.Date("2018-01-01"),as.Date("2021-11-01")),expand=c(0.005,0.005))+
   theme_bw()+
   theme(axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
@@ -293,8 +299,9 @@ overall_prediction_Colorectal <- prediction_overall %>% filter(outcome=="Colorec
 
 overall_prediction_Colorectal <- overall_prediction_Colorectal + 
   theme(axis.text.x = element_text(angle=90), 
-        axis.title.y = element_text(size = 9),    
-        plot.margin=grid::unit(c(1,1,0,1), "cm"))+
+        axis.title.y = element_text(size = 14),    
+        plot.margin=grid::unit(c(1,1,0,1), "cm"),
+        legend.text = element_text(size = 14))+
   geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
   ylab("Incidence rate per 100,000 person-months")+
   xlab("")#+
@@ -312,7 +319,7 @@ overall_prediction_Lung <- prediction_overall %>% filter(outcome=="Lung")%>%
   geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
   scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
   
-  scale_x_date(date_labels = "%b %Y", date_breaks = "3 month", limits= c(as.Date("2018-01-01"),as.Date("2021-12-01")),expand=c(0.005,0.005))+
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 month", limits= c(as.Date("2018-01-01"),as.Date("2021-11-01")),expand=c(0.005,0.005))+
   theme_bw()+
   theme(axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
@@ -322,8 +329,9 @@ overall_prediction_Lung <- prediction_overall %>% filter(outcome=="Lung")%>%
 
 overall_prediction_Lung <- overall_prediction_Lung + 
   theme(axis.text.x = element_text(angle=90), 
-        axis.title.y = element_text(size = 9),    
-        plot.margin=grid::unit(c(1,1,0,1), "cm"))+
+        axis.title.y = element_text(size = 14),    
+        plot.margin=grid::unit(c(1,1,0,1), "cm"),
+        legend.text = element_text(size = 14))+
   geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
   ylab("Incidence rate per 100,000 person-months")+
   xlab("")#+
@@ -340,7 +348,7 @@ overall_prediction_Prostate <- prediction_overall %>% filter(outcome=="Prostate"
   geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
   scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
   
-  scale_x_date(date_labels = "%b %Y", date_breaks = "3 month", limits= c(as.Date("2018-01-01"),as.Date("2021-12-01")),expand=c(0.005,0.005))+
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 month", limits= c(as.Date("2018-01-01"),as.Date("2021-11-01")),expand=c(0.005,0.005))+
   theme_bw()+
   theme(axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
@@ -350,8 +358,9 @@ overall_prediction_Prostate <- prediction_overall %>% filter(outcome=="Prostate"
 
 overall_prediction_Prostate <- overall_prediction_Prostate + 
   theme(axis.text.x = element_text(angle=90), 
-        axis.title.y = element_text(size = 9),    
-        plot.margin=grid::unit(c(1,1,0,1), "cm"))+
+        axis.title.y = element_text(size = 14),    
+        plot.margin=grid::unit(c(1,1,0,1), "cm"),
+        legend.text = element_text(size = 14))+
   geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
   ylab("Incidence rate per 100,000 person-months")+
   xlab("")#+
@@ -367,8 +376,153 @@ figure_prediction_overall<-ggarrange(overall_prediction_Breast, overall_predicti
 
 # Save
 
-ggsave(here("4_Results", db.name, "Plots", "Figure_1_prediction_overall.tiff"), figure_prediction_overall, dpi=300, scale = 1.25,  width = 16, height = 10)
-ggsave(here("4_Results", db.name, "Plots", "Figure_1_prediction_overall.jpg"), figure_prediction_overall, dpi=300, scale = 1.25,  width = 16, height = 10)
+ggsave(here("4_Results", db.name, "Plots", "Figure_1_prediction_overall.tiff"), figure_prediction_overall, dpi=600, scale = 1.25,  width = 16, height = 10)
+ggsave(here("4_Results", db.name, "Plots", "Figure_1_prediction_overall.jpg"), figure_prediction_overall, dpi=600, scale = 1.25,  width = 16, height = 10)
+
+rm(figure_prediction_overall, figure_age_gender,figure_ses, prediction_age.gender,predicion_overall, predicition_ses, 
+   end_mod, j, outcomes_to_fit)
+
+
+
+
+##### PLOTS - edited for paper --------
+
+# overall
+# Breast
+
+##### PLOTS--------
+
+# overall
+# Breast
+
+overall_prediction_Breast <- prediction_overall %>% filter(outcome=="Breast")%>%
+  ggplot()+
+  geom_point(aes(Date,ir_m, colour= "Observed"))+
+  geom_line(aes(Date,ir_m,colour= "Observed"))+
+  
+  geom_point(aes(Date,ir_pred,colour= "Expected"))+
+  geom_line(aes(Date,ir_pred,colour= "Expected"))+
+  geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
+  scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
+  
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 month", limits= c(as.Date("2020-03-01"),as.Date("2021-11-01")),expand=c(0.005,0.005))+
+  theme_bw()+
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())
+
+overall_prediction_Breast <- overall_prediction_Breast + 
+  theme(axis.text.x = element_text(angle=90), 
+        axis.title.y = element_text(size = 14),    
+        plot.margin=grid::unit(c(1,1,0,1), "cm"),
+        legend.text = element_text(size = 14))+
+  #geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
+  ylab("Incidence rate per 100,000 person-months")+
+  xlab("") #+
+#ggtitle("Incidence rates for breast cancer before and after COVID-19 lockdown")
+
+# Colorectal
+overall_prediction_Colorectal <- prediction_overall %>% filter(outcome=="Colorectal")%>%
+  ggplot()+
+  geom_point(aes(Date,ir_m, colour= "Observed"))+
+  geom_line(aes(Date,ir_m,colour= "Observed"))+
+  
+  geom_point(aes(Date,ir_pred,colour= "Expected"))+
+  geom_line(aes(Date,ir_pred,colour= "Expected"))+
+  geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
+  scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
+  
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 month", limits= c(as.Date("2020-03-01"),as.Date("2021-11-01")),expand=c(0.005,0.005))+
+  theme_bw()+
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())
+
+overall_prediction_Colorectal <- overall_prediction_Colorectal + 
+  theme(axis.text.x = element_text(angle=90), 
+        axis.title.y = element_text(size = 14),    
+        plot.margin=grid::unit(c(1,1,0,1), "cm"),
+        legend.text = element_text(size = 14))+
+ # geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
+  ylab("Incidence rate per 100,000 person-months")+
+  xlab("")#+
+#ggtitle("Incidence rates for colorectal cancer before and after COVID-19 lockdown")
+
+
+# Lung
+overall_prediction_Lung <- prediction_overall %>% filter(outcome=="Lung")%>%
+  ggplot()+
+  geom_point(aes(Date,ir_m, colour= "Observed"))+
+  geom_line(aes(Date,ir_m,colour= "Observed"))+
+  
+  geom_point(aes(Date,ir_pred,colour= "Expected"))+
+  geom_line(aes(Date,ir_pred,colour= "Expected"))+
+  geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
+  scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
+  
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 month", limits= c(as.Date("2020-03-01"),as.Date("2021-11-01")),expand=c(0.005,0.005))+
+  theme_bw()+
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())
+
+overall_prediction_Lung <- overall_prediction_Lung + 
+  theme(axis.text.x = element_text(angle=90), 
+        axis.title.y = element_text(size = 14),    
+        plot.margin=grid::unit(c(1,1,0,1), "cm"),
+        legend.text = element_text(size = 14))+
+ # geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
+  ylab("Incidence rate per 100,000 person-months")+
+  xlab("")#+
+#ggtitle("Incidence rates for Lung cancer before and after COVID-19 lockdown")
+
+# Prostate
+overall_prediction_Prostate <- prediction_overall %>% filter(outcome=="Prostate")%>%
+  ggplot()+
+  geom_point(aes(Date,ir_m, colour= "Observed"))+
+  geom_line(aes(Date,ir_m,colour= "Observed"))+
+  
+  geom_point(aes(Date,ir_pred,colour= "Expected"))+
+  geom_line(aes(Date,ir_pred,colour= "Expected"))+
+  geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
+  scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
+  
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 month", limits= c(as.Date("2020-03-01"),as.Date("2021-11-01")),expand=c(0.005,0.005))+
+  theme_bw()+
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())
+
+overall_prediction_Prostate <- overall_prediction_Prostate + 
+  theme(axis.text.x = element_text(angle=90), 
+        axis.title.y = element_text(size = 14),    
+        plot.margin=grid::unit(c(1,1,0,1), "cm"),
+        legend.text = element_text(size = 14))+
+ # geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),linetype=2, color="black")+
+  ylab("Incidence rate per 100,000 person-months")+
+  xlab("")#+
+#ggtitle("Incidence rates for prostate cancer before and after COVID-19 lockdown")
+
+figure_prediction_overall_march2020<-ggarrange(overall_prediction_Breast, overall_prediction_Colorectal, overall_prediction_Lung, overall_prediction_Prostate, 
+                                     align="hv", ncol=2, nrow=2,
+                                     labels = c("A) Breast Cancer", "B) Colorectal Cancer", "C) Lung Cancer", "D) Prostate Cancer"),font.label = list(size = 12),
+                                     hjust = c(-0.25,-0.25),
+                                     common.legend=TRUE, legend="right" )
+
+
+
+# Save
+
+ggsave(here("4_Results", db.name, "Plots", "Figure_1_prediction_overall_march2020.tiff"), figure_prediction_overall_march2020, dpi=600, scale = 1.25,  width = 16, height = 10)
+ggsave(here("4_Results", db.name, "Plots", "Figure_1_prediction_overall_march2020.jpg"), figure_prediction_overall_march2020, dpi=600, scale = 1.25,  width = 16, height = 10)
 
 rm(figure_prediction_overall, figure_age_gender,figure_ses, prediction_age.gender,predicion_overall, predicition_ses, 
    end_mod, j, outcomes_to_fit)
