@@ -461,7 +461,27 @@ IRR_forest_screen_plot =
 
 IRR_forest_screen_plot
 
+
+
+IRR_FOREST_screen_2 <- IRR_FOREST_screen  %>%
+  mutate(`Lockdown Periods` = factor(`Lockdown Periods`, levels=rev(c("Lockdown", "Post-lockdown1", "Second lockdown", 
+                                                                  "Third lockdown", "Easing of restrictions", "Legal restrictions removed"))) )
+IRR_forest_screen_plot_2 =
+  ggplot(data=IRR_FOREST_screen_2, aes(x = `Lockdown Periods`,y = estimate, ymin = lower, ymax = upper ))+
+  geom_pointrange(aes(col=`Lockdown Periods`, shape=`Lockdown Periods`))+
+  geom_hline(aes(fill=`Lockdown Periods`),yintercept =1, linetype=2)+
+  xlab("Screening/Diagnostic Test")+ ylab("Incidence Rate Ratio (95% Confidence Interval) - Pre-COVID as reference")+
+  geom_errorbar(aes(ymin=lower, ymax=upper,col=`Lockdown Periods`),width=0.5,cex=0.8)+ 
+  facet_wrap(~Screening_diagnostic_test,strip.position="left",nrow=4,scales = "free_y") +
+  theme(plot.title=element_text(size=14,face="bold"),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.text.x=element_text(face="bold"),
+        axis.title=element_text(size=14,face="bold"),
+        strip.text.y = element_text(hjust=0,vjust = 1,angle=180,face="bold"))+
+  guides(color = guide_legend(reverse = TRUE), shape = guide_legend(reverse = TRUE))+
+  coord_flip()
 # Save
 
-ggsave(here("4_Results", db.name, "Plots", "IRR_forest_screen.tiff"), IRR_forest_screen_plot, dpi=600, scale = 1.3,  width = 12, height = 8)
-ggsave(here("4_Results", db.name, "Plots", "IRR_forest_screen.jpg"), IRR_forest_screen_plot, dpi=600, scale = 1.3,  width = 12, height = 8)
+ggsave(here("4_Results", db.name, "Plots", "IRR_forest_screen.tiff"), IRR_forest_screen_plot_2, dpi=600, scale = 1.3,  width = 12, height = 8)
+ggsave(here("4_Results", db.name, "Plots", "IRR_forest_screen.jpg"), IRR_forest_screen_plot_2, dpi=600, scale = 1.3,  width = 12, height = 8)

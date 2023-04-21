@@ -312,13 +312,13 @@ IRR_FOREST <- rbind(IRR_Breast_CIs_Sep, IRR_Colorectal_CIs_Sep, IRR_Lung_CIs_Sep
 IRR_FOREST <- IRR_FOREST %>% filter(periods !="Pre-COVID")
 
 IRR_FOREST <- IRR_FOREST  %>%
-                    mutate(periods = factor(periods, levels=c("Lockdown", "Post-lockdown1", "Second lockdown", 
-                                              "Third lockdown", "Easing of restrictions", "Legal restrictions removed")) )
+                    mutate(periods = factor(periods, levels=rev(c("Lockdown", "Post-lockdown1", "Second lockdown", 
+                                              "Third lockdown", "Easing of restrictions", "Legal restrictions removed"))) )
 IRR_forest_cancer =
   ggplot(data=IRR_FOREST, aes(x = periods,y = estimate, ymin = lower, ymax = upper ))+
   geom_pointrange(aes(col=periods, shape=periods))+
   geom_hline(aes(fill=periods),yintercept =1, linetype=2)+
-  xlab('Cancer')+ ylab("Incidence Rate Ratio (95% Confidence Interval)")+
+  xlab('Cancer')+ ylab("Incidence Rate Ratio (95% Confidence Interval - Pre-COVID as reference)")+
   geom_errorbar(aes(ymin=lower, ymax=upper,col=periods),width=0.5,cex=0.8)+ 
   facet_wrap(~Cancer,strip.position="left",nrow=4,scales = "free_y") +
   theme(plot.title=element_text(size=14,face="bold"),
@@ -327,9 +327,11 @@ IRR_forest_cancer =
         axis.text.x=element_text(face="bold"),
         axis.title=element_text(size=14,face="bold"),
         strip.text.y = element_text(hjust=0,vjust = 1,angle=180,face="bold"))+
+  guides(color=guide_legend(title="Lockdown Periods"), shape=guide_legend(title="Lockdown Periods"))+
+  guides(color = guide_legend(reverse = TRUE), shape = guide_legend(reverse = TRUE))+
   coord_flip()
 
-IRR_forest_cancer + labs(fill = "COVID Period")
+
 IRR_forest_cancer
 
 # Save
