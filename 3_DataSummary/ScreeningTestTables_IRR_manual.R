@@ -393,3 +393,75 @@ Pretty_IRR_table_screening_tests <- flextable(IRR_table_screening_tests) %>% the
 
 save_as_docx('Pretty_IRR_table_screening_tests' = Pretty_IRR_table_screening_tests, path=here("3_DataSummary", "Pretty_IRR_table_screening_tests.docx"))
 
+
+
+
+
+# ============== CREATE FOREST PLOT OF INCIDENCE RATE RATIOS ================= #
+
+# Format the data. First create table with the estimates and CIs in separate columns
+# FUNCTION TO EXTRACT ALL THE IRR AND CIS FROM ALL OF THE LISTS 
+
+get_IR_df_function_CIs_Sep <- function(yourrateratiosname, title){
+  
+  Screening_diagnostic_test <- c(title)
+  IR_CIS <- as.data.frame(yourrateratiosname[[2]])
+  IR_CIS <- IR_CIS %>% mutate_if(is.numeric, round, digits=2)
+  IR_CIS <-cbind(Screening_diagnostic_test, periods, IR_CIS)
+  
+  return(IR_CIS)
+}
+
+# RUN THE FUNCTION FOR EACH OF THE RATERATIO LISTS
+
+IRR_BCR_Sep <-  get_IR_df_function_CIs_Sep(rateratios_breast_referrals, "Breast Cancer Referrals")
+IRR_BB_Sep <-  get_IR_df_function_CIs_Sep(rateratios_biopsy_breast, "Biopsy of Breast")
+IRR_Bronch_Sep <- get_IR_df_function_CIs_Sep(rateratios_bronch, "Bronchoscopy") #  doesnt work as data incomplete
+IRR_Col_Sep <-  get_IR_df_function_CIs_Sep(rateratios_colon, "Colonoscopy")
+IRR_DPC_Sep <-  get_IR_df_function_CIs_Sep(rateratios_chest, "Diagnostic Procedures of Chest")
+IRR_EB_Sep <-  get_IR_df_function_CIs_Sep(rateratios_excision_breast, "Excision of Breast")
+IRR_LCR_Sep <-  get_IR_df_function_CIs_Sep(rateratios_lung_referrals, "Lung Cancer Referrals")
+IRR_Mam_Sep <-  get_IR_df_function_CIs_Sep(rateratios_mammograms, "Mammograms")
+IRR_PSA_Sep <-  get_IR_df_function_CIs_Sep(rateratios_psa, "PSA")
+IRR_SBC_Sep <-  get_IR_df_function_CIs_Sep(rateratios_seen_breast_clinic, "Seen in Breast Clinic")
+IRR_SBS_Sep <-  get_IR_df_function_CIs_Sep(rateratios_seen_breast_surgeon, "Seen by Breast Surgeon")
+IRR_SIG_Sep <-  get_IR_df_function_CIs_Sep(rateratios_Sigmoidoscopy, "Sigmoidoscopy")
+IRR_BP_Sep <-  get_IR_df_function_CIs_Sep(rateratios_biopsy_prostate, "Biopsy of Prostate")
+IRR_BCSP_Sep <-  get_IR_df_function_CIs_Sep(rateratios_bowel_cancer_screen, "Bowel Cancer Screening Prog") #  doesnt work as data incomplete
+
+
+
+# JOIN THE RATIO OUTPUTS
+IRR_FOREST_screen <- rbind(IRR_BCR_Sep, IRR_BB_Sep, IRR_Col_Sep, IRR_DPC_Sep, IRR_EB_Sep, IRR_LCR_Sep,
+                           IRR_Mam_Sep, IRR_PSA_Sep, IRR_SBC_Sep, IRR_SBS_Sep, IRR_SIG_Sep, IRR_BP_Sep)
+
+# RENAME PERIODS
+IRR_FOREST_screen <- IRR_FOREST_screen %>% rename("Lockdown Periods" = periods) 
+
+# filter out pre-covid 
+IRR_FOREST_screen <- IRR_FOREST_screen %>% filter(`Lockdown Periods` !="Pre-COVID")
+
+IRR_FOREST_screen <- IRR_FOREST_screen  %>%
+  mutate(`Lockdown Periods` = factor(`Lockdown Periods`, levels=c("Lockdown", "Post-lockdown1", "Second lockdown", 
+                                            "Third lockdown", "Easing of restrictions", "Legal restrictions removed")) )
+IRR_forest_screen_plot =
+  ggplot(data=IRR_FOREST_screen, aes(x = `Lockdown Periods`,y = estimate, ymin = lower, ymax = upper ))+
+  geom_pointrange(aes(col=`Lockdown Periods`, shape=`Lockdown Periods`))+
+  geom_hline(aes(fill=`Lockdown Periods`),yintercept =1, linetype=2)+
+  xlab("Screening/Diagnostic Test")+ ylab("Incidence Rate Ratio (95% Confidence Interval)")+
+  geom_errorbar(aes(ymin=lower, ymax=upper,col=`Lockdown Periods`),width=0.5,cex=0.8)+ 
+  facet_wrap(~Screening_diagnostic_test,strip.position="left",nrow=4,scales = "free_y") +
+  theme(plot.title=element_text(size=14,face="bold"),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.text.x=element_text(face="bold"),
+        axis.title=element_text(size=14,face="bold"),
+        strip.text.y = element_text(hjust=0,vjust = 1,angle=180,face="bold"))+
+  coord_flip()
+
+IRR_forest_screen_plot
+
+# Save
+
+ggsave(here("4_Results", db.name, "Plots", "IRR_forest_screen.tiff"), IRR_forest_screen_plot, dpi=600, scale = 1.3,  width = 12, height = 8)
+ggsave(here("4_Results", db.name, "Plots", "IRR_forest_screen.jpg"), IRR_forest_screen_plot, dpi=600, scale = 1.3,  width = 12, height = 8)
