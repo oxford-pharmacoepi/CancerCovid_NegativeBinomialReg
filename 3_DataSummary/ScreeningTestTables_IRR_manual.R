@@ -4,13 +4,15 @@
 #                    for screening and diagnostic tests                        #
 #                                                                              #
 #                              Nicola Barclay                                  #
-#                                18-04-2023                                    #
+#                                16-05-2023                                    #
 # ============================================================================ #
 
 # Load the scleaned screening test data object which is from the csv file of 
 # incidence results from the IncPrev package ----
 
-load("~/GitHub/CancerCovid_NegativeBinomialReg/1_DataPrep/Data/ScreeningTests_DataPrep.RData")
+library(data.table)
+
+load("~/GitHub/CancerCovid_NegativeBinomialReg/1_DataPrep/Data/ScreeningTests_DataPrep_updated.RData")
 IR.overall_screen <- screening_inc_data_final  %>% filter(denominator_cohort_id ==1)
 
 IR <- IR.overall_screen
@@ -111,7 +113,29 @@ rateratios_colon <-rateratio(as.matrix(vector, y=NULL))
 
 
 
-# 5. working loop for one outcome - Diagnostic Procedures Of Chest
+# 5. working loop for one outcome - colorectal cancer referrals
+IR_Col <- IR.overall_screen %>% filter(IR.overall_screen$outcome =="Colorectal Cancer Referrals")
+vector <- data.frame(a=c(),b=c())
+
+for (z in 1:length(periods)){ 
+  working.period <- periods[z]
+  working.data <- IR_Col %>% 
+    filter(covid==working.period) %>%
+    mutate(ref=if_else(months.since.start < 39,0,1))%>% # 38 indicates reference OF PRE-COVID
+    group_by(ref)%>% #no function for final time period
+    summarise( events_t = sum(events),person_months_at_risk = sum(months))%>%
+    mutate(periods = paste(working.period))
+  
+  events <- c(working.data%>%dplyr::select(events_t)%>%pull())
+  pt <- c(working.data%>%dplyr::select(person_months_at_risk)%>%pull())
+  
+  vector <- rbind(vector,c(events, pt))
+}
+rateratios_ccr <-rateratio(as.matrix(vector, y=NULL))
+
+
+
+# 6. working loop for one outcome - Diagnostic Procedures Of Chest
 IR_DC <- IR.overall_screen %>% filter(IR.overall_screen$outcome =="Diagnostic Procedures Of Chest")
 vector <- data.frame(a=c(),b=c())
 
@@ -133,7 +157,7 @@ rateratios_chest <-rateratio(as.matrix(vector, y=NULL))
 
 
 
-# 6. working loop for one outcome - Excision Of Breast
+# 7. working loop for one outcome - Excision Of Breast
 IR_EB <- IR.overall_screen %>% filter(IR.overall_screen$outcome =="Excision Of Breast")
 vector <- data.frame(a=c(),b=c())
 
@@ -154,7 +178,7 @@ for (z in 1:length(periods)){
 rateratios_excision_breast <-rateratio(as.matrix(vector, y=NULL))
 
 
-# 7. working loop for one outcome - Lung Cancer Referrals
+# 8. working loop for one outcome - Lung Cancer Referrals
 IR_LC <- IR.overall_screen %>% filter(IR.overall_screen$outcome =="Lung Cancer Referrals")
 vector <- data.frame(a=c(),b=c())
 
@@ -177,7 +201,7 @@ rateratios_lung_referrals <-rateratio(as.matrix(vector, y=NULL))
 
 
 
-# 8. working loop for one outcome - Mammograms
+# 9. working loop for one outcome - Mammograms
 IR_mam <- IR.overall_screen %>% filter(IR.overall_screen$outcome =="Mammograms")
 vector <- data.frame(a=c(),b=c())
 
@@ -199,7 +223,7 @@ rateratios_mammograms <-rateratio(as.matrix(vector, y=NULL))
 
 
 
-# 9. working loop for one outcome - Prostate Specific Antigen Test
+# 10. working loop for one outcome - Prostate Specific Antigen Test
 IR_psa <- IR.overall_screen %>% filter(IR.overall_screen$outcome =="Prostate Specific Antigen Test")
 vector <- data.frame(a=c(),b=c())
 
@@ -222,7 +246,7 @@ rateratios_psa <-rateratio(as.matrix(vector, y=NULL))
 
 
 
-# 10. working loop for one outcome - Seen in Breast Clinic
+# 11. working loop for one outcome - Seen in Breast Clinic
 IR_sbc <- IR.overall_screen %>% filter(IR.overall_screen$outcome =="Seen in Breast Clinic")
 vector <- data.frame(a=c(),b=c())
 
@@ -244,7 +268,7 @@ rateratios_seen_breast_clinic <-rateratio(as.matrix(vector, y=NULL))
 
 
 
-# 11. working loop for one outcome - Seen Breast Surgeon
+# 12. working loop for one outcome - Seen Breast Surgeon
 IR_sbs <- IR.overall_screen %>% filter(IR.overall_screen$outcome =="Seen Breast Surgeon")
 vector <- data.frame(a=c(),b=c())
 
@@ -265,7 +289,7 @@ for (z in 1:length(periods)){
 rateratios_seen_breast_surgeon <-rateratio(as.matrix(vector, y=NULL))
 
 
-# 12. working loop for one outcome - Sigmoidoscopy
+# 13. working loop for one outcome - Sigmoidoscopy
 IR_sig <- IR.overall_screen %>% filter(IR.overall_screen$outcome =="Sigmoidoscopy")
 vector <- data.frame(a=c(),b=c())
 
@@ -286,7 +310,7 @@ for (z in 1:length(periods)){
 rateratios_Sigmoidoscopy <-rateratio(as.matrix(vector, y=NULL))
 
 
-# 13 working loop for one outcome - Biopsy Of Prostate
+# 14 working loop for one outcome - Biopsy Of Prostate
 IR_bp <- IR.overall_screen %>% filter(IR.overall_screen$outcome =="Biopsy Of Prostate")
 vector <- data.frame(a=c(),b=c())
 
@@ -307,7 +331,7 @@ for (z in 1:length(periods)){
 rateratios_biopsy_prostate <-rateratio(as.matrix(vector, y=NULL))
 
 
-# 14. working loop for one outcome - Bowel Cancer Screening Prog
+# 15. working loop for one outcome - Bowel Cancer Screening Prog
 IR_bcsp <- IR.overall_screen %>% filter(IR.overall_screen$outcome =="Bowel Cancer Screening Prog")
 vector <- data.frame(a=c(),b=c())
 
@@ -362,6 +386,7 @@ IRR_BCR <-  get_IR_df_function(rateratios_breast_referrals, "Breast Cancer Refer
 IRR_BB <-  get_IR_df_function(rateratios_biopsy_breast, "Biopsy of Breast")
 IRR_Bronch <- get_IR_df_function(rateratios_bronch, "Bronchoscopy") #  doesnt work as data incomplete
 IRR_Col <-  get_IR_df_function(rateratios_colon, "Colonoscopy")
+IRR_CCR <-  get_IR_df_function(rateratios_ccr, "Colorectal ncancer referrals")
 IRR_DPC <-  get_IR_df_function(rateratios_chest, "Diagnostic Procedures of Chest")
 IRR_EB <-  get_IR_df_function(rateratios_excision_breast, "Excision of Breast")
 IRR_LCR <-  get_IR_df_function(rateratios_lung_referrals, "Lung Cancer Referrals")
@@ -375,7 +400,7 @@ IRR_BCSP <-  get_IR_df_function(rateratios_bowel_cancer_screen, "Bowel Cancer Sc
 
 
 # JOIN THE TABLES
-IRR_table_screening_tests <- rbind(IRR_BCR, IRR_BB, IRR_Col, IRR_DPC, IRR_EB, IRR_LCR, IRR_Mam, IRR_PSA, IRR_SBC, IRR_SBS, IRR_SIG, IRR_BP)
+IRR_table_screening_tests <- rbind(IRR_BCR, IRR_BB, IRR_Col, IRR_CCR, IRR_EB, IRR_LCR, IRR_Mam, IRR_PSA, IRR_SBC, IRR_SBS, IRR_SIG, IRR_BP)
 # REMOVE PRE-covid COLUMN
 IRR_table_screening_tests <- IRR_table_screening_tests[-1]
 # CONVERT THE ROWNAMES TO A NORMAL DATA COLUMN
@@ -383,15 +408,15 @@ IRR_table_screening_tests <- tibble::rownames_to_column(IRR_table_screening_test
 
 
 #### Save IRR
-write.csv(IRR_table_screening_tests, file=here("3_DataSummary", "IRR_table_screening_tests.csv"))
-save(IRR_table_screening_tests, file=here("3_DataSummary", "IRR_table_screening_tests.RData"))
+write.csv(IRR_table_screening_tests, file=here("3_DataSummary", "IRR_table_screening_tests_updated.csv"))
+save(IRR_table_screening_tests, file=here("3_DataSummary", "IRR_table_screening_tests_updated.RData"))
 
 #### Make pretty table
 Pretty_IRR_table_screening_tests <- flextable(IRR_table_screening_tests) %>% theme_vanilla() %>% 
   set_caption(caption = "Incidence rate ratios of screening and diagnostic tests compared to pre-COVID period") %>% 
   width(width = 1.4) 
 
-save_as_docx('Pretty_IRR_table_screening_tests' = Pretty_IRR_table_screening_tests, path=here("3_DataSummary", "Pretty_IRR_table_screening_tests.docx"))
+save_as_docx('Pretty_IRR_table_screening_tests' = Pretty_IRR_table_screening_tests, path=here("3_DataSummary", "Pretty_IRR_table_screening_tests_updated.docx"))
 
 
 
@@ -418,6 +443,7 @@ IRR_BCR_Sep <-  get_IR_df_function_CIs_Sep(rateratios_breast_referrals, "Breast 
 IRR_BB_Sep <-  get_IR_df_function_CIs_Sep(rateratios_biopsy_breast, "Biopsy of Breast")
 IRR_Bronch_Sep <- get_IR_df_function_CIs_Sep(rateratios_bronch, "Bronchoscopy") #  doesnt work as data incomplete
 IRR_Col_Sep <-  get_IR_df_function_CIs_Sep(rateratios_colon, "Colonoscopy")
+IRR_CCR_Sep <-  get_IR_df_function_CIs_Sep(rateratios_ccr, "Colorectal Cancer Referrals")
 IRR_DPC_Sep <-  get_IR_df_function_CIs_Sep(rateratios_chest, "Diagnostic Procedures of Chest")
 IRR_EB_Sep <-  get_IR_df_function_CIs_Sep(rateratios_excision_breast, "Excision of Breast")
 IRR_LCR_Sep <-  get_IR_df_function_CIs_Sep(rateratios_lung_referrals, "Lung Cancer Referrals")
@@ -432,7 +458,7 @@ IRR_BCSP_Sep <-  get_IR_df_function_CIs_Sep(rateratios_bowel_cancer_screen, "Bow
 
 
 # JOIN THE RATIO OUTPUTS
-IRR_FOREST_screen <- rbind(IRR_BCR_Sep, IRR_BB_Sep, IRR_Col_Sep, IRR_DPC_Sep, IRR_EB_Sep, IRR_LCR_Sep,
+IRR_FOREST_screen <- rbind(IRR_BCR_Sep, IRR_BB_Sep, IRR_Col_Sep, IRR_CCR_Sep, IRR_EB_Sep, IRR_LCR_Sep,
                            IRR_Mam_Sep, IRR_PSA_Sep, IRR_SBC_Sep, IRR_SBS_Sep, IRR_SIG_Sep, IRR_BP_Sep)
 
 # RENAME PERIODS
@@ -442,7 +468,7 @@ IRR_FOREST_screen <- IRR_FOREST_screen %>% rename("Lockdown Periods" = periods)
 IRR_FOREST_screen <- IRR_FOREST_screen %>% filter(`Lockdown Periods` !="Pre-COVID")
 
 IRR_FOREST_screen <- IRR_FOREST_screen  %>%
-  mutate(`Lockdown Periods` = factor(`Lockdown Periods`, levels=c("Lockdown", "Post-lockdown1", "Second lockdown", 
+  mutate(`Lockdown Periods` = factor(`Lockdown Periods`, levels=c("Lockdown", "Post-first lockdown 1", "Second lockdown", 
                                             "Third lockdown", "Easing of restrictions", "Legal restrictions removed")) )
 IRR_forest_screen_plot =
   ggplot(data=IRR_FOREST_screen, aes(x = `Lockdown Periods`,y = estimate, ymin = lower, ymax = upper ))+
@@ -461,10 +487,10 @@ IRR_forest_screen_plot =
 
 IRR_forest_screen_plot
 
-
+# this one flips the order 
 
 IRR_FOREST_screen_2 <- IRR_FOREST_screen  %>%
-  mutate(`Lockdown Periods` = factor(`Lockdown Periods`, levels=rev(c("Lockdown", "Post-lockdown1", "Second lockdown", 
+  mutate(`Lockdown Periods` = factor(`Lockdown Periods`, levels=rev(c("Lockdown", "Post-first lockdown 1", "Second lockdown", 
                                                                   "Third lockdown", "Easing of restrictions", "Legal restrictions removed"))) )
 IRR_forest_screen_plot_2 =
   ggplot(data=IRR_FOREST_screen_2, aes(x = `Lockdown Periods`,y = estimate, ymin = lower, ymax = upper ))+
@@ -483,5 +509,5 @@ IRR_forest_screen_plot_2 =
   coord_flip()
 # Save
 
-ggsave(here("4_Results", db.name, "Plots", "IRR_forest_screen.tiff"), IRR_forest_screen_plot_2, dpi=600, scale = 1.3,  width = 12, height = 8)
-ggsave(here("4_Results", db.name, "Plots", "IRR_forest_screen.jpg"), IRR_forest_screen_plot_2, dpi=600, scale = 1.3,  width = 12, height = 8)
+ggsave(here("4_Results", db.name, "Plots", "IRR_forest_screen_updated.tiff"), IRR_forest_screen_plot_2, dpi=600, scale = 1.3,  width = 12, height = 8)
+ggsave(here("4_Results", db.name, "Plots", "IRR_forest_screen_updated.jpg"), IRR_forest_screen_plot_2, dpi=600, scale = 1.3,  width = 12, height = 8)

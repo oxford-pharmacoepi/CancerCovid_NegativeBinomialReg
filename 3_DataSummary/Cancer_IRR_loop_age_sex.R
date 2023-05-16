@@ -121,6 +121,9 @@ save(inc_data_final, file=here("3_DataSummary", "inc_data_final.RData"))
 
 # ============ CALCULATE IRR FOR EACH CANCER OVER PERIODS ==================== #
 
+# ============ OVERALL (NO AGE SEX STRATIFICATION ) ========================== #
+
+
 # This code calculates the IRR for each of the cancers
 # separately, but loops over each period of interest
 
@@ -128,99 +131,43 @@ IR.overall <- inc_data_final %>% filter(denominator_cohort_id ==1)
 
 IR <- IR.overall
 
+
 periods<- IR%>% dplyr::select("covid")%>%distinct()%>%pull()
 outcome <-IR%>% dplyr::select("outcome")%>% distinct()%>%pull()
+#IRR <- list() # a list to store all the output later
+rateratios <- vector("list",length(outcome)); names(rateratios) = outcome
 
+for (y in 1:length(outcome)){
+  working.outcome <- outcome[y]
+  vector <- data.frame(a=c(),b=c()) # a vector to place the values from the loop
+  for(z in 1:length(periods)){ 
+    working.period <- periods[z]
+    working.data <- IR %>% 
+      filter(outcome==working.outcome)%>%
+      filter(covid==working.period) %>%
+      mutate(ref=if_else(months.since.start < 39,0,1))%>% # 38 indicates reference OF PRE-COVID
+      group_by(ref)%>% #no function for final time period
+      summarise( events_t = sum(events),person_months_at_risk = sum(months))%>%
+      mutate(periods = paste(working.period))%>%
+      mutate(outcome= paste(working.outcome))
+    
+    events <- c(working.data%>%dplyr::select(events_t)%>%pull())
+    pt <- c(working.data%>%dplyr::select(person_months_at_risk)%>%pull())
+    
+    vector <- rbind(vector,c(events, pt))
+    
+    
+  }  
+  ifelse(dim(vector)[1] > 1,
+         rateratios[[y]] <-rateratio(as.matrix(vector, y=NULL)), # this bit of the code says that if there is a result in vector, give us the rate ratio. If no result, give us NA
+         rateratios[[y]] <- NA)
+} 
 
-
-
-
-# 1. working loop for one outcome - breast cancer
-IR_breast_cancer <- IR %>% filter(IR$outcome =="Breast")
-vector <- data.frame(a=c(),b=c())
-
-for (z in 1:length(periods)){ 
-  working.period <- periods[z]
-  working.data <- IR_breast_cancer %>% 
-    filter(covid==working.period) %>%
-    mutate(ref=if_else(months.since.start < 39,0,1))%>% # 38 indicates reference OF PRE-COVID
-    group_by(ref)%>% #no function for final time period
-    summarise( events_t = sum(events),person_months_at_risk = sum(months))%>%
-    mutate(periods = paste(working.period))
-  
-  events <- c(working.data%>%dplyr::select(events_t)%>%pull())
-  pt <- c(working.data%>%dplyr::select(person_months_at_risk)%>%pull())
-  
-  vector <- rbind(vector,c(events, pt))
-}
-rateratios_breast <-rateratio(as.matrix(vector, y=NULL))
-
-
-
-# 2. colorectal cancer
-IR_colorectal_cancer <- IR %>% filter(IR$outcome =="Colorectal")
-vector <- data.frame(a=c(),b=c())
-
-for (z in 1:length(periods)){ 
-  working.period <- periods[z]
-  working.data <- IR_colorectal_cancer %>% 
-    filter(covid==working.period) %>%
-    mutate(ref=if_else(months.since.start < 39,0,1))%>% # 38 indicates reference OF PRE-COVID
-    group_by(ref)%>% #no function for final time period
-    summarise( events_t = sum(events),person_months_at_risk = sum(months))%>%
-    mutate(periods = paste(working.period))
-  
-  events <- c(working.data%>%dplyr::select(events_t)%>%pull())
-  pt <- c(working.data%>%dplyr::select(person_months_at_risk)%>%pull())
-  
-  vector <- rbind(vector,c(events, pt))
-}
-rateratios_colorectal <-rateratio(as.matrix(vector, y=NULL))
-
-
-
-
-# 3. lung cancer
-IR_lung_cancer <- IR %>% filter(IR$outcome =="Lung")
-vector <- data.frame(a=c(),b=c())
-
-for (z in 1:length(periods)){ 
-  working.period <- periods[z]
-  working.data <- IR_lung_cancer %>% 
-    filter(covid==working.period) %>%
-    mutate(ref=if_else(months.since.start < 39,0,1))%>% # 38 indicates reference OF PRE-COVID
-    group_by(ref)%>% #no function for final time period
-    summarise( events_t = sum(events),person_months_at_risk = sum(months))%>%
-    mutate(periods = paste(working.period))
-  
-  events <- c(working.data%>%dplyr::select(events_t)%>%pull())
-  pt <- c(working.data%>%dplyr::select(person_months_at_risk)%>%pull())
-  
-  vector <- rbind(vector,c(events, pt))
-}
-rateratios_lung <-rateratio(as.matrix(vector, y=NULL))
-
-
-
-# 4. prostate cancer
-IR_prostate_cancer <- IR %>% filter(IR$outcome =="Prostate")
-vector <- data.frame(a=c(),b=c())
-
-for (z in 1:length(periods)){ 
-  working.period <- periods[z]
-  working.data <- IR_prostate_cancer %>% 
-    filter(covid==working.period) %>%
-    mutate(ref=if_else(months.since.start < 39,0,1))%>% # 38 indicates reference OF PRE-COVID
-    group_by(ref)%>% #no function for final time period
-    summarise( events_t = sum(events),person_months_at_risk = sum(months))%>%
-    mutate(periods = paste(working.period))
-  
-  events <- c(working.data%>%dplyr::select(events_t)%>%pull())
-  pt <- c(working.data%>%dplyr::select(person_months_at_risk)%>%pull())
-  
-  vector <- rbind(vector,c(events, pt))
-}
-rateratios_prostate <-rateratio(as.matrix(vector, y=NULL))
+# EXTRACT THE CANCER LISTS
+rateratios_breast <- rateratios$Breast
+rateratios_colorectal <- rateratios$Colorectal
+rateratios_lung <- rateratios$Lung
+rateratios_prostate <- rateratios$Prostate
 
 
 
@@ -255,6 +202,8 @@ get_IR_df_function <- function(yourrateratiosname, title){
 
 # RUN THE FUNCTION FOR EACH OF THE RATERATIO LISTS
 
+
+
 IRR_Breast <-  get_IR_df_function(rateratios_breast, "Breast")
 IRR_Colorectal <-  get_IR_df_function(rateratios_colorectal, "Colorectal")
 IRR_Lung <- get_IR_df_function(rateratios_lung, "Lung") 
@@ -271,8 +220,8 @@ IRR_table_cancer <- tibble::rownames_to_column(IRR_table_cancer, "Cancer")
 
 
 #### Save IRR
-write.csv(IRR_table_cancer, file=here("3_DataSummary", "IRR_table_cancer.csv"))
-save(IRR_table_cancer, file=here("3_DataSummary", "IRR_table_cancer.RData"))
+write.csv(IRR_table_cancer, file=here::here("3_DataSummary", "IRR_table_cancer_looped.csv"))
+save(IRR_table_cancer, file=here::here("3_DataSummary", "IRR_table_cancer_looped.RData"))
 
 #### Make pretty table
 Pretty_IRR_table_cancer <- flextable(IRR_table_cancer) %>% theme_vanilla() %>% 
@@ -353,3 +302,112 @@ IRR_forest_cancer
 
 ggsave(here("4_Results", db.name, "Plots", "IRR_forest_cancer.tiff"), IRR_forest_cancer, dpi=600, scale = 1.3,  width = 10, height = 8)
 ggsave(here("4_Results", db.name, "Plots", "IRR_forest_cancer.jpg"), IRR_forest_cancer, dpi=600, scale = 1.3,  width = 10, height = 8)
+
+
+# ================ STRATIFIED BY AGE AND SEX  ================================ #
+
+
+# This code calculates the IRR for each of the cancers stratified by age and sex
+# loops over each period of interest
+
+IR.age.sex <- inc_data_final
+
+IR.as <- IR.age.sex
+
+IRR.age.sex <- list()
+
+periods<- IR%>% dplyr::select("covid")%>%distinct()%>%pull()
+outcome <-IR%>% dplyr::select("outcome")%>% distinct()%>%pull()
+age.strata <- IR.as %>% dplyr::select("denominator_age_group")%>% distinct()%>%pull() 
+sex.strata <- IR.as %>% dplyr::select("denominator_sex")%>% distinct()%>%pull() 
+
+strata <- c(age.strata, sex.strata)
+comb <- expand.grid(age.strata, sex.strata)
+
+
+rateratios.as <- vector("list",length(outcome)); names(rateratios.as) = outcome
+
+for (y in 1:length(outcome)){
+  working.outcome <- outcome[y]
+  vector <- data.frame(a=c(),b=c()) # a vector to place the values from the loop
+  for(z in 1:length(periods)){ 
+    working.period <- periods[z]
+      for(i in 1:NROW(comb)){
+      
+      working.strata <- paste(comb$Var1, comb$Var2)[i]
+      working.age <- comb$Var1[i]
+      working.gender<- comb$Var2[i]
+      
+    working.data <- IR %>% 
+      filter(outcome==working.outcome)%>%
+      filter(covid==working.period) %>%
+      filter((denominator_age_group==working.age)) %>%
+      filter((denominator_sex==working.gender)) %>%
+      mutate(ref=if_else(months.since.start < 39,0,1))%>% # 38 indicates reference OF PRE-COVID
+      group_by(ref)%>% #no function for final time period
+      summarise( events_t = sum(events),person_months_at_risk = sum(months))%>%
+      mutate(periods = paste(working.period))%>%
+      mutate(outcome= paste(working.outcome))
+    
+    events <- c(working.data%>%dplyr::select(events_t)%>%pull())
+    pt <- c(working.data%>%dplyr::select(person_months_at_risk)%>%pull())
+    
+    vector <- rbind(vector,c(events, pt))
+    
+
+  }
+  ifelse(dim(vector)[1] > 1,
+         rateratios.as[[y]] <-rateratio(as.matrix(vector, y=NULL)), # this bit of the code says that if there is a result in vector, give us the rate ratio. If no result, give us NA
+         rateratios.as[[y]] <- NA)
+  }
+  
+  IRR.age.sex[[paste0(working.period, working.outcome, working.strata)]]<- working.data %>%
+    filter(period == working.period)%>%
+    filter(outcome == working.outcome)%>%
+    filter(ref==1)%>%
+    mutate(IR = events_t/pmar * 100000) %>%
+    mutate(IRR=round(rateratios.as$measure[2],2)) %>%
+    mutate(IRR_low =round(rateratios.as$measure[2,2],2)) %>%
+    mutate(IRR_upp =round(rateratios.as$measure[2,3],2))
+
+  }
+
+# EXTRACT THE CANCER LISTS - need to edit to add the age sex strata
+rateratios_breast <- rateratios$Breast
+rateratios_colorectal <- rateratios$Colorectal
+rateratios_lung <- rateratios$Lung
+rateratios_prostate <- rateratios$Prostate
+
+
+# RUN THE FUNCTION FOR EACH OF THE RATERATIO LISTS
+
+
+
+IRR_Breast <-  get_IR_df_function(rateratios_breast, "Breast")
+IRR_Colorectal <-  get_IR_df_function(rateratios_colorectal, "Colorectal")
+IRR_Lung <- get_IR_df_function(rateratios_lung, "Lung") 
+IRR_Prostate <-  get_IR_df_function(rateratios_prostate, "Prostate")
+
+
+
+# JOIN THE TABLES
+IRR_table_cancer <- rbind(IRR_Breast, IRR_Colorectal, IRR_Lung, IRR_Prostate)
+# REMOVE PRE-covid COLUMN
+IRR_table_cancer <- IRR_table_cancer[-1]
+# CONVERT THE ROWNAMES TO A NORMAL DATA COLUMN
+IRR_table_cancer <- tibble::rownames_to_column(IRR_table_cancer, "Cancer")
+
+
+#### Save IRR
+write.csv(IRR_table_cancer, file=here::here("3_DataSummary", "IRR_table_cancer_looped.csv"))
+save(IRR_table_cancer, file=here::here("3_DataSummary", "IRR_table_cancer_looped.RData"))
+
+#### Make pretty table
+Pretty_IRR_table_cancer <- flextable(IRR_table_cancer) %>% theme_vanilla() %>% 
+  set_caption(caption = "Incidence rate ratios of cancers ober the lockdown periods compared to pre-COVID period") %>% 
+  width(width = 1.4) 
+
+save_as_docx('Pretty_IRR_table_cancer' = Pretty_IRR_table_cancer, path=here("3_DataSummary", "Pretty_IRR_table_cancer.docx"))
+
+
+

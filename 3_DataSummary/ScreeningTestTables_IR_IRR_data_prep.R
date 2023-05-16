@@ -3,18 +3,17 @@
 #                    for screening and diagnostic tests                        #
 #                                                                              #
 #                              Nicola Barclay                                  #
-#                                06-04-2023                                    #
+#                                16-05-2023                                    #
 # ============================================================================ #
 
 # Read the csv file of incidence results from the IncPrev package ----
 
-screening_inc_data <- read_csv("1_DataPrep/Data/screening_incidence_estimates.csv")
-View(screening_incidence_estimates)
+screening_inc_data <- read_csv("1_DataPrep/Data/screening_incidence_estimates_UPDATED.csv")
 
 # columns to remove from screening_inc_data - remove all those that do not vary
 screening_inc_data <- screening_inc_data %>% dplyr::select(c(-analysis_id, -cohort_obscured, -analysis_repeated_events, - denominator_days_prior_history,
                                          -analysis_complete_database_intervals,-analysis_min_cell_count, -denominator_strata_cohort_definition_id,
-                                         -denominator_strata_cohort_name, -database_name)) %>%
+                                         -denominator_strata_cohort_name, -cdm_name)) %>%
   # name outcomes
   mutate(outcome = case_when(outcome_cohort_name == "BiopsyOfBreast" ~ "Biopsy of Breast",
                              outcome_cohort_name == "BreastCancerReferrals" ~ "Breast Cancer Referrals",
@@ -56,8 +55,7 @@ screening_inc_data <- screening_inc_data %>% mutate(month = as.Date(screening_in
 # create month-year column
 screening_inc_data <- screening_inc_data %>% mutate(month_year = as.Date(screening_inc_data$incidence_start_date, format="%d/%m/%Y")) 
 
-#%>%
-  mutate(month_year = format(month_year, format = "%m/%Y")) %>% as.POSIXlt(as.Date(screening_inc_data$month_year))
+#%>%   mutate(month_year = format(month_year, format = "%m/%Y")) %>% as.POSIXlt(as.Date(screening_inc_data$month_year))
 
 
 # compute person months
@@ -117,7 +115,7 @@ screening_inc_data  %>% dplyr::select(incidence_start_date, months.since.start, 
 colnames(screening_inc_data)
 
 screening_inc_data_final <- screening_inc_data %>% dplyr::select(n_persons, incidence_start_date, person_days, months, person_years, n_events, ir_m, month, year, months.since.start, outcome, covid,
-                                             month_year, denominator_age_group, denominator_sex, denominator_cohort_id)
+                                             denominator_age_group, denominator_sex, denominator_cohort_id)
 
 
 # rename columns in line with Berta's column names
@@ -128,7 +126,7 @@ head(screening_inc_data_final)
 
 
 # save screening tests data----
-save(screening_inc_data_final, file = here("1_DataPrep", "Data", "ScreeningTests_DataPrep.RData"))
+save(screening_inc_data_final, file = here("1_DataPrep", "Data", "ScreeningTests_DataPrep_updated.RData"))
 
 
 
@@ -174,12 +172,12 @@ overall.post <-IR.overall%>%
   group_by(outcome) %>% summarise( events_t = sum(events),person_months_at_risk = sum(months),)
 
 ir_post <- bind_rows(overall.post)%>% arrange(outcome)
-ir1 <-as.matrix(ir_post[,2:3])
-ci <- round(epi.conf(ir1, ctype = "inc.rate", method = "exact", N = 100000, design = 1, 
+ir2 <-as.matrix(ir_post[,2:3])
+ci2 <- round(epi.conf(ir2, ctype = "inc.rate", method = "exact", N = 100000, design = 1, 
                      conf.level = 0.95) * 100000,1)
 
-ir_ci <- cbind(ir_post, ci)
-ir.post_ci <- ir_ci %>% 
+ir_ci2 <- cbind(ir_post, ci2)
+ir.post_ci <- ir_ci2 %>% 
   mutate(ir = paste0(paste(est)," (", paste(lower), " to ", paste(upper), ")"))%>%
   mutate(covid="Post-lockdown")%>%
   dplyr::select(covid,outcome,  events_t, person_months_at_risk, ir)%>%

@@ -61,3 +61,6 @@ for (y in 1:length(outcome)){
       mutate(IRR_low =round(rateratios$measure[2,2],2)) %>%
       mutate(IRR_upp =round(rateratios$measure[2,3],2))
     
+
+# now extract the info you want from the lists
+    
