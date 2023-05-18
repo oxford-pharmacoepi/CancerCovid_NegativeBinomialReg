@@ -409,7 +409,7 @@ IRR_table_screening_tests <- tibble::rownames_to_column(IRR_table_screening_test
 
 #### Save IRR
 write.csv(IRR_table_screening_tests, file=here("3_DataSummary", "IRR_table_screening_tests_updated.csv"))
-save(IRR_table_screening_tests, file=here("3_DataSummary", "IRR_table_screening_tests_updated.RData"))
+save(IRR_table_screening_tests, IRR_BCR, IRR_BB, IRR_Col, IRR_CCR, IRR_EB, IRR_LCR, IRR_Mam, IRR_PSA, IRR_SBC, IRR_SBS, IRR_SIG, IRR_BP, file=here("3_DataSummary", "IRR_table_screening_tests_updated.RData"))
 
 #### Make pretty table
 Pretty_IRR_table_screening_tests <- flextable(IRR_table_screening_tests) %>% theme_vanilla() %>% 
@@ -487,7 +487,12 @@ IRR_forest_screen_plot =
 
 IRR_forest_screen_plot
 
-# this one flips the order 
+# this one flips the order and colours same as cancer figure
+
+# color blind palette
+# The palette with grey:
+#cbPalette <- c("#CC79A7", "#D55E00", "#0072B2", "#F0E442", "#009E73", "#56B4E9", "#E69F00", "#999999")
+
 
 IRR_FOREST_screen_2 <- IRR_FOREST_screen  %>%
   mutate(`Lockdown Periods` = factor(`Lockdown Periods`, levels=rev(c("Lockdown", "Post-first lockdown 1", "Second lockdown", 
@@ -496,18 +501,23 @@ IRR_forest_screen_plot_2 =
   ggplot(data=IRR_FOREST_screen_2, aes(x = `Lockdown Periods`,y = estimate, ymin = lower, ymax = upper ))+
   geom_pointrange(aes(col=`Lockdown Periods`, shape=`Lockdown Periods`))+
   geom_hline(aes(fill=`Lockdown Periods`),yintercept =1, linetype=2)+
-  xlab("Screening/Diagnostic Test")+ ylab("Incidence Rate Ratio (95% Confidence Interval) - Pre-COVID as reference")+
+  xlab("Screening/Diagnostic Test")+ ylab("Incidence Rate Ratio (95% Confidence Interval) - Pre-Pandemic as reference")+
   geom_errorbar(aes(ymin=lower, ymax=upper,col=`Lockdown Periods`),width=0.5,cex=0.8)+ 
   facet_wrap(~Screening_diagnostic_test,strip.position="left",nrow=4,scales = "free_y") +
   theme(plot.title=element_text(size=14,face="bold"),
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank(),
-        axis.text.x=element_text(face="bold"),
+        axis.text.x=element_text(size=12,face="bold"),
         axis.title=element_text(size=14,face="bold"),
-        strip.text.y = element_text(hjust=0,vjust = 1,angle=180,face="bold"))+
+        legend.text=element_text(size=12),
+        legend.title=element_text(size=12),
+        strip.text.y = element_text(hjust=0,vjust = 1,angle=180,face="bold",size=11))+
   guides(color = guide_legend(reverse = TRUE), shape = guide_legend(reverse = TRUE))+
+  #scale_fill_manual(values=cbPalette)+
+  #scale_colour_manual(values=cbPalette)+
   coord_flip()
 # Save
+
 
 ggsave(here("4_Results", db.name, "Plots", "IRR_forest_screen_updated.tiff"), IRR_forest_screen_plot_2, dpi=600, scale = 1.3,  width = 12, height = 8)
 ggsave(here("4_Results", db.name, "Plots", "IRR_forest_screen_updated.jpg"), IRR_forest_screen_plot_2, dpi=600, scale = 1.3,  width = 12, height = 8)

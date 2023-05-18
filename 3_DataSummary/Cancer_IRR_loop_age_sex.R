@@ -95,7 +95,7 @@ inc_data  %>% dplyr::select(incidence_start_date, months.since.start) %>% print(
 # add covid time periods for months since start
 inc_data <- inc_data %>% mutate(covid = case_when(months.since.start <= 38 ~ "Pre-COVID", # start date is 01-2017, so 38 months is up to 1st March 2020
                                                   (months.since.start >= 39)&(months.since.start <= 42)~ "Lockdown", # March 2020 up to end of June
-                                                  (months.since.start >= 43)&(months.since.start <= 46)~ "Post-lockdown1", # July to end of oct 2020
+                                                  (months.since.start >= 43)&(months.since.start <= 46)~ "Post-first lockdown 1", # July to end of oct 2020
                                                   (months.since.start >= 47)&(months.since.start <= 48)~ "Second lockdown", # Nov - end of Dec 2020
                                                   (months.since.start >= 49)&(months.since.start <= 50)~ "Third lockdown", # Jan - end of feb 2021
                                                   (months.since.start >= 51)&(months.since.start <= 54)~ "Easing of restrictions", # March - end of june 2021
@@ -116,7 +116,7 @@ inc_data_final <- inc_data_final %>% rename("n" = "n_persons", "days" = "person_
 
 head(inc_data_final)
 
-save(inc_data_final, file=here("3_DataSummary", "inc_data_final.RData"))
+save(inc_data_final, file=here("3_DataSummary", "inc_data_final_updated.RData"))
 
 
 # ============ CALCULATE IRR FOR EACH CANCER OVER PERIODS ==================== #
@@ -220,15 +220,15 @@ IRR_table_cancer <- tibble::rownames_to_column(IRR_table_cancer, "Cancer")
 
 
 #### Save IRR
-write.csv(IRR_table_cancer, file=here::here("3_DataSummary", "IRR_table_cancer_looped.csv"))
-save(IRR_table_cancer, file=here::here("3_DataSummary", "IRR_table_cancer_looped.RData"))
+write.csv(IRR_table_cancer, file=here::here("3_DataSummary", "IRR_table_cancer_looped_updated.csv"))
+save(IRR_table_cancer, file=here::here("3_DataSummary", "IRR_table_cancer_looped_updated.RData"))
 
 #### Make pretty table
 Pretty_IRR_table_cancer <- flextable(IRR_table_cancer) %>% theme_vanilla() %>% 
   set_caption(caption = "Incidence rate ratios of cancers ober the lockdown periods compared to pre-COVID period") %>% 
   width(width = 1.4) 
 
-save_as_docx('Pretty_IRR_table_cancer' = Pretty_IRR_table_cancer, path=here("3_DataSummary", "Pretty_IRR_table_cancer.docx"))
+save_as_docx('Pretty_IRR_table_cancer' = Pretty_IRR_table_cancer, path=here("3_DataSummary", "Pretty_IRR_table_cancer_updated.docx"))
 
 
 
@@ -265,12 +265,12 @@ IRR_FOREST <- IRR_FOREST %>% rename("Lockdown Periods" = periods)
 
 
 IRR_FOREST <- IRR_FOREST  %>%
-  mutate(`Lockdown Periods` = factor(`Lockdown Periods`, levels=rev(c("Lockdown", "Post-lockdown1", "Second lockdown", 
+  mutate(`Lockdown Periods` = factor(`Lockdown Periods`, levels=rev(c("Lockdown", "Post-first lockdown 1", "Second lockdown", 
                                               "Third lockdown", "Easing of restrictions", "Legal restrictions removed"))) )
 
 # color blind palette
 # The palette with grey:
-cbPalette <- c("#CC79A7", "#D55E00", "#0072B2", "#F0E442", "#009E73", "#56B4E9", "#E69F00", "#999999")
+#cbPalette <- c("#CC79A7", "#D55E00", "#0072B2", "#F0E442", "#009E73", "#56B4E9", "#E69F00", "#999999")
 
 IRR_forest_cancer =
   ggplot(data=IRR_FOREST, aes(x = `Lockdown Periods`,y = estimate, ymin = lower, ymax = upper ))+
@@ -291,8 +291,8 @@ IRR_forest_cancer =
         #panel.grid.major = element_line(color = "grey", size = 0.2, linetype = "dashed"))+
   #guides(color=guide_legend(title="Lockdown Periods"), shape=guide_legend(title="Lockdown Periods"))+
   guides(color = guide_legend(reverse = TRUE), shape = guide_legend(reverse = TRUE))+
-  scale_fill_manual(values=cbPalette)+
-  scale_colour_manual(values=cbPalette)+
+ # scale_fill_manual(values=cbPalette)+
+  #scale_colour_manual(values=cbPalette)+
   coord_flip()
 
 
@@ -300,12 +300,12 @@ IRR_forest_cancer
 
 # Save
 
-ggsave(here("4_Results", db.name, "Plots", "IRR_forest_cancer.tiff"), IRR_forest_cancer, dpi=600, scale = 1.3,  width = 10, height = 8)
-ggsave(here("4_Results", db.name, "Plots", "IRR_forest_cancer.jpg"), IRR_forest_cancer, dpi=600, scale = 1.3,  width = 10, height = 8)
+ggsave(here("4_Results", db.name, "Plots", "IRR_forest_cancer_updated.tiff"), IRR_forest_cancer, dpi=600, scale = 1.3,  width = 10, height = 8)
+ggsave(here("4_Results", db.name, "Plots", "IRR_forest_cancer_updated.jpg"), IRR_forest_cancer, dpi=600, scale = 1.3,  width = 10, height = 8)
 
 
 # ================ STRATIFIED BY AGE AND SEX  ================================ #
-
+# this is not complete and does not work
 
 # This code calculates the IRR for each of the cancers stratified by age and sex
 # loops over each period of interest
