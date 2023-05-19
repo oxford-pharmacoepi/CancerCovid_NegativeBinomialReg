@@ -373,3 +373,38 @@ write.csv(IRR.overall, "Summary of observed data/irr_overall_rev.csv")
 write.csv(IRR.gender, "Summary of observed data/irr_gender_rev.csv")
 write.csv(IRR.age_gender, "Summary of observed data/irr_age.gender_rev.csv")
 write.csv(IRR.ses, "Summary of observed data/irr_ses_rev.csv")
+
+
+
+
+###### MARTA'S EXTRA CODE
+if (is.na(rateratios[[i]])){
+  extract1 =  "NA"
+  
+} else {
+  temp_data = rateratios[[i]]$measure
+  extract1 =get_IR_df_function(temp_data, list_names[i])
+}
+
+list_names <- c(outer(names_cohort_id,outcome,paste,sep="_"))
+for (i in 1:length(list_names)){
+  
+  temp_data = rateratios[[i]]
+  extraction_list[[i]] <- temp_data
+  
+}
+
+# EXTRACT THE CANCER LISTS#
+
+extract <- list()
+list_names <- names(rateratios)
+for (i in 1:length(list_names)){
+  
+  temp_data = rateratios[[i]][[2]]
+  extract[[i]] <- temp_data
+  
+}
+
+# or 
+
+
