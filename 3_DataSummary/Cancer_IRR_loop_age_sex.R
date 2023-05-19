@@ -45,9 +45,18 @@ IR.overall <- inc_data_final %>% filter(  denominator_cohort_id == 9 |denominato
                                           denominator_cohort_id == 14|denominator_cohort_id == 15|denominator_cohort_id == 17|
                                           denominator_cohort_id == 18)
 
+# CREATE A NEW COLUMN OF Age and Sex groups
+IR.overall <- IR.overall %>% mutate(Age_sex = case_when(grepl("9", denominator_cohort_id) ~ "Female; 20-39",
+                                                                                    grepl("11", denominator_cohort_id) ~ "Male; 40-59",
+                                                                                    grepl("12", denominator_cohort_id) ~ "Female; 40-59",
+                                                                                    grepl("14", denominator_cohort_id) ~ "Male; 60-79",
+                                                                                    grepl("15", denominator_cohort_id) ~ "Female; 60-79",
+                                                                                    grepl("17", denominator_cohort_id) ~ "Male; 80-150",
+                                                                                    grepl("18", denominator_cohort_id) ~ "Female; 80-150"))
 
 
-names_cohort_id = names(table(IR.overall$denominator_cohort_id))
+
+names_cohort_id = names(table(IR.overall$Age_sex))
 number_cohort_id = length(names_cohort_id)
 
 IR <- IR.overall
@@ -57,6 +66,14 @@ periods<- IR%>% dplyr::select("covid")%>%distinct()%>%pull()
 outcome <-IR%>% dplyr::select("outcome")%>% distinct()%>%pull()
 rateratios <- vector("list",length(outcome)*number_cohort_id); names(rateratios) = outer(names_cohort_id,outcome,paste,sep="_")
 
+
+# THERE IS A PROBLEM WITH THE OUTPUT OOF THIS. THERE ARE LISTS OF FEMALES WITH PROSTATE CANCER, AND ALL THE RATIOS i'VE
+# CHECKED ARE NOT ACCURATE
+# CONSIDER RUNNING THESE LOOPSSEPSARATELY BY CANCER
+
+# it is possible that it is not calculating the row 1 (pre-covid) correctly. I checked the counts in pre-covid period manually as 
+# 797 for denomiator cohort id 19 for colorectal, but in the rate ratios it calcs it as 360. so there is something wrong with the 
+# sum of events by the loop below. check the other periods
 count = 1
 for (id in names_cohort_id){
   for (y in 1:length(outcome)){
@@ -65,7 +82,7 @@ for (id in names_cohort_id){
     for(z in 1:length(periods)){
       working.period <- periods[z]
       working.data <- IR %>%
-        filter(denominator_cohort_id==id)%>%
+        filter(Age_sex==id)%>%
         filter(outcome==working.outcome)%>%
         filter(covid==working.period) %>%
         mutate(ref=if_else(months.since.start < 39,0,1))%>% # 38 indicates reference OF PRE-COVID
@@ -87,6 +104,8 @@ for (id in names_cohort_id){
     count = count + 1
   }
 }
+
+save(rateratios, file=here::here("3_DataSummary", "rateratios_to_check.RData"))
 
 # show table of age sex groups - note that these are the cohorts that did not have results obscured in the data prep phase.
 age_sex_table <- inc_data_final %>% dplyr::select(denominator_age_group, denominator_sex, denominator_cohort_id) %>% 
@@ -201,7 +220,7 @@ IRR_table_cancer_age_sex <- IRR_table_cancer_age_sex %>% mutate(Sex = case_when(
 
 # REORDER
 IRR_table_cancer_age_sex <- IRR_table_cancer_age_sex[c(1, 9, 10, 12, 11, 3, 4, 5, 6, 7, 8)]
-IRR_table_cancer_age_sex <- arrange(IRR_table_cancer_age_sex, Cancer)
+IRR_table_cancer_age_sex <- arrange(IRR_table_cancer_age_sex, Cancer, Sex, Age)
 
 #### Save IRR
 write.csv(IRR_table_cancer_age_sex, file=here::here("3_DataSummary", "IRR_table_cancer_age_sex_looped.csv"))
