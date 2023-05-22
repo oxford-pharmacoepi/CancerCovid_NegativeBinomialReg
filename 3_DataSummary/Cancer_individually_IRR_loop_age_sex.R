@@ -60,11 +60,11 @@ names_cohort_id = names(table(IR.overall$Age_sex))
 number_cohort_id = length(names_cohort_id)
 
 IR <- IR.overall
-
+outcome <- "Breast"
 
 periods<- IR%>% dplyr::select("covid")%>%distinct()%>%pull()
-outcome <-IR%>% dplyr::select("outcome")%>% distinct()%>%pull()
-#rateratios <- vector("list",length(outcome)*number_cohort_id); names(rateratios) = outer(names_cohort_id,outcome,paste,sep="_")
+#outcome <-IR%>% dplyr::select("outcome")%>% distinct()%>%pull()
+rateratios <- vector("list",length(number_cohort_id); names(rateratios) = outer(names_cohort_id,outcome,paste,sep="_")
 
 
 # THERE IS A PROBLEM WITH THE OUTPUT OOF THIS. THERE ARE LISTS OF FEMALES WITH PROSTATE CANCER, AND ALL THE RATIOS i'VE
@@ -76,11 +76,11 @@ outcome <-IR%>% dplyr::select("outcome")%>% distinct()%>%pull()
 # sum of events by the loop below. check the other periods
 
 # it also calculates estimates for females with prostate cancer so something is definitely wrong
-rateratios <- list()
+count = 1
 for (id in names_cohort_id){
   for (y in 1:length(outcome)){
     working.outcome <- outcome[y]
-    vector <- NULL # a vector to place the values from the loop
+    vector <- data.frame(a=c(),b=c()) # a vector to place the values from the loop
     for(z in 1:length(periods)){
       working.period <- periods[z]
       working.data <- IR %>%
@@ -88,7 +88,7 @@ for (id in names_cohort_id){
         filter(outcome==working.outcome)%>%
         filter(covid==working.period) %>%
         mutate(ref=if_else(months.since.start < 39,0,1))%>% # 38 indicates reference OF PRE-COVID
-        group_by(ref)%>% 
+        group_by(ref)%>% #no function for final time period
         summarise( events_t = sum(events),person_months_at_risk = sum(months))%>%
         mutate(periods = paste(working.period))%>%
         mutate(outcome= paste(working.outcome))
@@ -96,28 +96,18 @@ for (id in names_cohort_id){
       events <- c(working.data%>%dplyr::select(events_t)%>%pull())
       pt <- c(working.data%>%dplyr::select(person_months_at_risk)%>%pull())
       
-      vector <- vector %>%
-        union_all(
-          tibble(
-            events = events, person_time = pt, period = periods[z]
-          )
-        )
+      vector <- rbind(vector,c(events, pt))
+      
       
     }
-    count <- paste(id, outcome[y], sep = ";")
-    if (dim(vector)[1] > 1) {
-      rateratios[[count]] <- rateratio(as.matrix(vector[,1:2], y=NULL))$measure %>% bind_cols(vector[,3])
-    }
-            
+    ifelse(dim(vector)[1] > 1,
+           rateratios[[count]] <-rateratio(as.matrix(vector, y=NULL)), # this bit of the code says that if there is a result in vector, give us the rate ratio. If no result, give us NA
+           rateratios[[count]] <- NA)
+    count = count + 1
   }
 }
 
-rateratios_table <- bind_rows(rateratios, .id = "age_sex")
-
 save(rateratios, file=here::here("3_DataSummary", "rateratios_to_check.RData"))
-
-write.csv(rateratios_table, file=here::here("3_DataSummary", "IRR_table_cancer_age_sex_looped_to_check.csv"))
-
 
 # show table of age sex groups - note that these are the cohorts that did not have results obscured in the data prep phase.
 age_sex_table <- inc_data_final %>% dplyr::select(denominator_age_group, denominator_sex, denominator_cohort_id) %>% 
@@ -177,9 +167,7 @@ get_IR_df_function <- function(yourrateratiosname, title){
 # Therefore, you have to remove the elements of the rate ratio list that don't have complete periods (17 colorectal)
 # and calculate that one manually
 
-
-# running the code again I now get row 12 as only having 6 periods, for female prostae!
-rateratios_subset <- rateratios[-12]
+rateratios_subset <- rateratios[-3]
 
 list_names <- names(rateratios_subset)
 extract_with_function <- list()
