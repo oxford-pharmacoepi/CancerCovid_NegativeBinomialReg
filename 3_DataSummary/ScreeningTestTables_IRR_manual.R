@@ -461,27 +461,47 @@ IRR_BCSP_Sep <-  get_IR_df_function_CIs_Sep(rateratios_bowel_cancer_screen, "Bow
 IRR_FOREST_screen <- rbind(IRR_BCR_Sep, IRR_BB_Sep, IRR_Col_Sep, IRR_CCR_Sep, IRR_EB_Sep, IRR_LCR_Sep,
                            IRR_Mam_Sep, IRR_PSA_Sep, IRR_SBC_Sep, IRR_SBS_Sep, IRR_SIG_Sep, IRR_BP_Sep)
 
+#### Save IRR
+write.csv(IRR_FOREST_screen, file=here("3_DataSummary", "IRR_FOREST_screen.csv"))
+save(IRR_FOREST_screen, file=here("3_DataSummary", "IRR_FOREST_screen.RData"))
+
+
 # RENAME PERIODS
 IRR_FOREST_screen <- IRR_FOREST_screen %>% rename("Lockdown Periods" = periods) 
+
+# RENAME PERIODS
+IRR_FOREST_screen <- IRR_FOREST_screen %>% rename("Screening/Diagnostic Tests" = "Screening_diagnostic_test") 
 
 # filter out pre-covid 
 IRR_FOREST_screen <- IRR_FOREST_screen %>% filter(`Lockdown Periods` !="Pre-COVID")
 
+IRR_FOREST_screen  <- IRR_FOREST_screen  %>% mutate(`Screening/Diagnostic Tests` = recode(`Screening/Diagnostic Tests`, "PSA" = "Prostate Specific Antigen"))
+
+#RE-ORDER THE LOCKDOWN PERIODS ASCENDING
 IRR_FOREST_screen <- IRR_FOREST_screen  %>%
   mutate(`Lockdown Periods` = factor(`Lockdown Periods`, levels=c("Lockdown", "Post-first lockdown 1", "Second lockdown", 
                                             "Third lockdown", "Easing of restrictions", "Legal restrictions removed")) )
+
+# RE-ORDER THE TESTS BY CANCER TYPE
+IRR_FOREST_screen <- IRR_FOREST_screen  %>%
+  mutate(`Screening/Diagnostic Tests` = factor(`Screening/Diagnostic Tests`, levels=c("Biopsy of Breast", "Breast Cancer Referrals", "Excision of Breast", 
+                                                                  "Mammograms", "Seen by Breast Surgeon", "Seen in Breast Clinic", "Colonoscopy", "Colorectal Cancer Referrals",
+                                                                  "Sigmoidoscopy", "Lung Cancer Referrals", "Biopsy of Prostate", "Prostate Specific Antigen")) )
+
 IRR_forest_screen_plot =
   ggplot(data=IRR_FOREST_screen, aes(x = `Lockdown Periods`,y = estimate, ymin = lower, ymax = upper ))+
   geom_pointrange(aes(col=`Lockdown Periods`, shape=`Lockdown Periods`))+
   geom_hline(aes(fill=`Lockdown Periods`),yintercept =1, linetype=2)+
   xlab("Screening/Diagnostic Test")+ ylab("Incidence Rate Ratio (95% Confidence Interval)")+
   geom_errorbar(aes(ymin=lower, ymax=upper,col=`Lockdown Periods`),width=0.5,cex=0.8)+ 
-  facet_wrap(~Screening_diagnostic_test,strip.position="left",nrow=4,scales = "free_y") +
+  facet_wrap(~`Screening/Diagnostic Tests`,strip.position="left",nrow=4,scales = "free_y") +
   theme(plot.title=element_text(size=14,face="bold"),
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank(),
-        axis.text.x=element_text(face="bold"),
+        axis.text.x=element_text(face="bold", size=14),
         axis.title=element_text(size=14,face="bold"),
+        legend.text=element_text(size=14),
+        legend.title=element_text(size=14),
         strip.text.y = element_text(hjust=0,vjust = 1,angle=180,face="bold"))+
   coord_flip()
 
@@ -503,14 +523,14 @@ IRR_forest_screen_plot_2 =
   geom_hline(aes(fill=`Lockdown Periods`),yintercept =1, linetype=2)+
   xlab("Screening/Diagnostic Test")+ ylab("Incidence Rate Ratio (95% Confidence Interval) - Pre-Pandemic as reference")+
   geom_errorbar(aes(ymin=lower, ymax=upper,col=`Lockdown Periods`),width=0.5,cex=0.8)+ 
-  facet_wrap(~Screening_diagnostic_test,strip.position="left",nrow=4,scales = "free_y") +
+  facet_wrap(~`Screening/Diagnostic Tests`,strip.position="left",nrow=4,scales = "free_y") +
   theme(plot.title=element_text(size=14,face="bold"),
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank(),
-        axis.text.x=element_text(size=12,face="bold"),
+        axis.text.x=element_text(size=14,face="bold"),
         axis.title=element_text(size=14,face="bold"),
-        legend.text=element_text(size=12),
-        legend.title=element_text(size=12),
+        legend.text=element_text(size=14),
+        legend.title=element_text(size=14),
         strip.text.y = element_text(hjust=0,vjust = 1,angle=180,face="bold",size=11))+
   guides(color = guide_legend(reverse = TRUE), shape = guide_legend(reverse = TRUE))+
   #scale_fill_manual(values=cbPalette)+
@@ -519,5 +539,5 @@ IRR_forest_screen_plot_2 =
 # Save
 
 
-ggsave(here("4_Results", db.name, "Plots", "IRR_forest_screen_updated.tiff"), IRR_forest_screen_plot_2, dpi=600, scale = 1.3,  width = 12, height = 8)
-ggsave(here("4_Results", db.name, "Plots", "IRR_forest_screen_updated.jpg"), IRR_forest_screen_plot_2, dpi=600, scale = 1.3,  width = 12, height = 8)
+ggsave(here("4_Results", db.name, "Plots", "IRR_forest_screen_updated.tiff"), IRR_forest_screen_plot, dpi=600, scale = 1.3,  width = 15, height = 10)
+ggsave(here("4_Results", db.name, "Plots", "IRR_forest_screen_updated.jpg"), IRR_forest_screen_plot, dpi=900, scale = 1,  width = 12, height = 8)
