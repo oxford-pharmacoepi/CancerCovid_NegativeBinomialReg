@@ -44,4 +44,5 @@ CodeToRun-local.R
 *.csv
 
 *Results
+*.zip
 
