@@ -24,8 +24,11 @@ Barclay, N.L., Pineda Moncusi, M., J√∂dicke, A. M., Prieto-Alhambra, D., Ravent√
 
 ## Associated repositories and documents
 The paper (Barclay et al., in prep) contains analyses from other github repositories which can be found here:
+
 https://github.com/oxford-pharmacoepi/CancerCovid_CohortDiagnostics
+
 https://github.com/oxford-pharmacoepi/CancerCovid_Characterisations
+
 https://github.com/oxford-pharmacoepi/CancerCovid_IncidencePrevalence
 
 
