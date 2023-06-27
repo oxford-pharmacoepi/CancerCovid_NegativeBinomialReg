@@ -11,7 +11,7 @@
 
 # ===================== DATA PREP ============================================ #
 
-# Load the scleaned screening test data object which is from the csv file of 
+# Load the cleaned screening test data object which is from the csv file of 
 # incidence results from the IncPrev package ----
 
 #inc_data <- read_csv("1_DataPrep", "Data", "incidence_estimates.csv")
@@ -116,7 +116,7 @@ inc_data_final <- inc_data_final %>% rename("n" = "n_persons", "days" = "person_
 
 head(inc_data_final)
 
-save(inc_data_final, file=here("3_DataSummary", "inc_data_final_updated.RData"))
+save(inc_data_final, file=here("3_DataSummary", db.name, "IR_IRR_DataSummaryResults", "inc_data_final_updated.RData"))
 
 
 # ============ CALCULATE IRR FOR EACH CANCER OVER PERIODS ==================== #
@@ -220,15 +220,15 @@ IRR_table_cancer <- tibble::rownames_to_column(IRR_table_cancer, "Cancer")
 
 
 #### Save IRR
-write.csv(IRR_table_cancer, file=here::here("3_DataSummary", "IRR_table_cancer_looped_updated.csv"))
-save(IRR_table_cancer, file=here::here("3_DataSummary", "IRR_table_cancer_looped_updated.RData"))
+write.csv(IRR_table_cancer, file=here::here("3_DataSummary", db.name, "IR_IRR_DataSummaryResults", "IRR_table_cancer_looped_updated.csv"))
+save(IRR_table_cancer, file=here::here("3_DataSummary", db.name, "IR_IRR_DataSummaryResults", "IRR_table_cancer_looped_updated.RData"))
 
 #### Make pretty table
 Pretty_IRR_table_cancer <- flextable(IRR_table_cancer) %>% theme_vanilla() %>% 
   set_caption(caption = "Incidence rate ratios of cancers ober the lockdown periods compared to pre-COVID period") %>% 
   width(width = 1.4) 
 
-save_as_docx('Pretty_IRR_table_cancer' = Pretty_IRR_table_cancer, path=here("3_DataSummary", "Pretty_IRR_table_cancer_updated.docx"))
+save_as_docx('Pretty_IRR_table_cancer' = Pretty_IRR_table_cancer, path=here("3_DataSummary", db.name, "IR_IRR_DataSummaryResults", "Pretty_IRR_table_cancer_updated.docx"))
 
 
 

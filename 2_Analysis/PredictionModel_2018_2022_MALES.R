@@ -1,3 +1,13 @@
+# ============================================================================ #
+#                         NEGATIVE BINOMIAL REGRESSION                         #
+#                            FOR CANCER/COVID STUDY                            #
+#                          PREDICTION MODEL - MALES                            #
+#                                Nicola Barclay                                #
+#                                 17-01-2023                                   #
+# ============================================================================ #
+
+
+
 ###### Observed vs expected (Negative Binomial Regression models)
 ###Forecast:
 ##Fit to 01/01/2018- 01/02/2020
@@ -6,7 +16,7 @@
 load(here("1_DataPrep", "Data", "GeneralPop2018_22.RData"))
 
 
-## SET UP FOR RUNNING PREDICTION MODEL FOR MALES AND FEMALES SEPARATELY
+## SET UP FOR RUNNING PREDICTION MODEL FOR MALES SEPARATELY
 
 IR.age_male <- inc_data_pred_final %>%  mutate(Month1 =paste(1,month, year, sep ="-"))  %>% filter(denominator_sex =="Male")
 

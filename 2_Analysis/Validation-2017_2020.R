@@ -146,7 +146,7 @@ end_mod <- 26 #month.since.start= Feb 2019
 end_pred <- 38 #month.since.start= Feb 2020
 
 
-# FOR MALES ONLY - THIS RUNS FINE
+# FOR MALES ONLY - 
 
 for(j in 1:length(outcomes_to_fit_male)){
   for(i in 1:length(age_to_fit_male)){
@@ -178,7 +178,8 @@ rm(models.age_male.fit,models.age_male_pred, pred,working.nb, age_to_fit_male, i
 
 
 
-# FOR FEMALES ONLY - this does not run
+# FOR FEMALES ONLY - this will only run where data are complete for every outcome, 
+# for every age and sex strata. If any cells are empty, need to run separately per outcome
 
 #for(j in 1:length(outcomes_to_fit_female)){
 #  for(i in 1:length(age_to_fit_female)){
@@ -215,9 +216,9 @@ rm(models.age_male.fit,models.age_male_pred, pred,working.nb, age_to_fit_male, i
 
 
 ###### Validation by age- FOR FEMALES ONLY 
-# run this separately by each cancer as combined it did not work with the multiple category for loops
+# run this separately by each cancer as combined it does not work with the multiple category for-loops when any cells are empty per age-sex strata
 
-# Breast - this works through all the age groups fine.
+# Breast -
 
 age_to_fit_female <- IR.age_female %>%  ungroup() %>%dplyr::select("denominator_age_group")%>% distinct()%>%pull()
 models.age_female_breast.fit <- list()
@@ -285,7 +286,7 @@ save(models.age_female_colorectal.fit, file=here("4_Results", db.name,  "Validat
 save(val_age_female_colorectal, file=here("4_Results", db.name,  "Validation",  "val_age_female_colorectal.RData"))
 rm(models.age_female_colorectal.fit, models.age_female_pred, pred,working.nb, age_to_fit_female, i)
 
-# need to figure out what to do with the 1 row in 20;39 age group that hasn't run. This i have currently excluded but need to run this.
+# need to consider what to do with the 1 row in 20;39 age group that hasn't run. This i have currently excluded but need to run this.
 
 
 # Lung
@@ -336,44 +337,6 @@ val_age_sex <- rbind(val_age_male, val_age_female)
 
 save(val_age_sex, file=here("4_Results", db.name,  "Validation", "Validation_age_sex_nb.RData"))
 write.csv(val_age_sex, file=here("4_Results", db.name,  "Validation","Validation_age_sex_nb.csv"))
-
-
-###### Validation by SES: run this when we have the data
-
-IR.ses <- IR.ses %>% mutate(Month1 =paste(1,month, year, sep ="-"))
-IR.ses$Date <- NA
-IR.ses$Date <- dmy(IR.ses$Month1)
-IR.ses$Month1 <- NULL
-ses_to_fit <- IR.ses %>%  ungroup() %>%dplyr::select("medea")%>% distinct()%>%pull()
-models.ses_pred <- list()
-models.ses <- list()
-end_mod <- 26 #month.since.start= Feb 2019
-end_pred <- 38 #month.since.start= Feb 2020
-
-for(j in 1:length(outcomes_to_fit)){
-  for(i in 1:(length(ses_to_fit))){
-    working.nb <- glm.nb(events ~ as.factor(month)+months.since.start,data=IR.ses%>% filter(months.since.start<= end_mod) %>% filter(medea==ses_to_fit[i]) %>% 
-                           filter(outcome==outcomes_to_fit[j]))
-    models.ses[[paste0("m.",ses_to_fit[i],".nb")]]  <- working.nb
-    pred <-predict(working.nb, newdata=IR.ses%>% filter(months.since.start<= end_pred) %>% filter(medea==ses_to_fit[i])%>%
-                     filter(outcome==outcomes_to_fit[j]),type="response", se.fit = TRUE, interval= "prediction", level=0.95)
-    
-    models.ses_pred[[paste0("m.",ses_to_fit[i],outcomes_to_fit[j], ".nb")]] <- cbind(IR.ses %>% filter(months.since.start<= end_pred) %>% filter(outcome==outcomes_to_fit[j])%>% 
-                                                                                       filter(medea==ses_to_fit[i]), data.frame(est=as.character(pred$fit), model="nb")) %>%  
-      add_pi(working.nb, names = c("lwr", "upr"), alpha = 0.05) %>%
-      mutate(ir_pred=pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months) %>%
-      mutate(red = (100*(events-pred)/pred))
-  }
-}
-
-
-val_ses <- bind_rows(models.ses_pred) %>% mutate(ir_pred =pred*100000/months, lwr_pred=lwr*100000/months, upr_pred=upr*100000/months)%>% 
-  mutate_if(is.numeric, ~round(., 1)) %>% dplyr::select(-c(model, est))
-save(val_ses, file=here("4_Results", db.name,  "Validation", "Validation_ses.RData"))
-
-rm(IR.ses, models.ses,models.ses_pred, pred,working.nb, ses_to_fit,
-   end_mod,end_pred, i,j,outcomes_to_fit, i, j)
-
 
 
 
@@ -648,50 +611,3 @@ figure_age_gender <-ggarrange(age_female_Breast, age_sex_Colorectal, age_sex_Lun
 ggsave(here("4_Results", db.name, "Plots", "Figure_2_validation_age_gender.jpg"), figure_age_gender, dpi=600, scale = 1.25,  width = 16, height = 10)
 
 
-# add this when we have the SES data
-# SES
-prediction_ses$medea <- factor(prediction_ses$medea, levels=c("U1", "U2", "U3", "U4", "U5", "R"))
-plot_ses_Breast <- prediction_ses%>%
-  filter(outcome=="Breast") %>% filter(months.since.start >=13)%>%
-  ggplot()+
-  facet_grid(.~medea,scales="free")+
-  geom_point(aes(Date,ir_m, colour= "Observed"))+
-  geom_line(aes(Date,ir_m,colour= "Observed"))+
-  
-  geom_point(aes(Date,ir_pred,colour= "Expected"))+
-  geom_line(aes(Date,ir_pred,colour= "Expected"))+
-  geom_ribbon(aes(ymin = lwr_pred,ymax = upr_pred, x=Date),  fill = "blue", alpha = 0.1)+
-  scale_color_manual(name= "", values=c(Observed="red", Expected="blue"))+
-  
-  scale_x_date(date_labels = "%b %Y", date_breaks = "4 month")+
-  theme_bw() +
-  theme(axis.line = element_line(colour = "black"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank()
-  )
-
-
-plot_ses_Breast <- plot_ses_Breast+
-  theme(axis.text.x=element_text(angle=90, hjust=1),
-        axis.title.y = element_text(size = 9),
-        plot.margin=grid::unit(c(1,0.5,0,1), "cm") )+
-  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-01"))),
-             linetype=2, color="black")+
-  ylab("Incidence rate per 100,000 person-months")+
-  xlab("")
-
-# ADD ALL OTHER PLOTS FOR THE OTHER CANCERS STRATIFIED BY SES HERE TOO WHEN THE ABOVE IS CORRECT
-
-figure_ses <-ggarrange(plot_ses_Breast, plot_ses_Colorectal, plot_ses_Lung, plot_ses_Prostate,
-                       align="hv", ncol=1, nrow=2,
-                       labels = c("A) Breast Cancer", "B) Colorectal Cancer", "C) Lung Cancer", "D) Prostate Cancer"),font.label = list(size = 12),
-                       hjust = c(-0.25,-0.25),
-                       common.legend=TRUE, legend="right" )
-
-
-
-ggsave(here("4_Results", db.name, "Plots", "Figure_3_ses.jpg"), figure_ses, dpi=300, scale = 2)
-
-
-rm(figure_overall, figure_age_gender,figure_ses, prediction_age.gender,predicion_overall, predicition_ses, 
-   end_mod, j, outcomes_to_fit)

@@ -1,6 +1,11 @@
-# Script for extrapolating the number of counts underdiagnosed to the general population
-# CPRD GOLD covers 4.63% of the UK population
-# Multiply the counts by 21.59 (100/4.63) to get the extrapolated counts
+# ============================================================================ #
+#     Script for extrapolating the number of counts underdiagnosed to the      #
+#        general population. CPRD GOLD covers 4.63% of the UK population       #
+#    Multiply the counts by 21.59 (100/4.63) to get the extrapolated counts    #
+#                                Nicola Barclay                                #
+#                                 17-05-2023                                   #
+# ============================================================================ #
+
 
 # get the csv file with the missed diagnosis and percent reduction counts from
 # the predictive modelling results

@@ -46,7 +46,7 @@ rateratios_breast_referrals <-rateratio(as.matrix(vector, y=NULL))
 
 
 
-# 2. working loop for one outcome - bronchoscopy - this doesnt work as there is only data pre-covid for this outcome
+# 2. working loop for one outcome - bronchoscopy - this doesn't work in CPRD GOLD as there is only data pre-covid for this outcome
 IR_Bronchoscopy <- IR.overall_screen %>% filter(IR.overall_screen$outcome =="Bronchoscopy")
 vector <- data.frame(a=c(),b=c())
 
@@ -408,15 +408,15 @@ IRR_table_screening_tests <- tibble::rownames_to_column(IRR_table_screening_test
 
 
 #### Save IRR
-write.csv(IRR_table_screening_tests, file=here("3_DataSummary", "IRR_table_screening_tests_updated.csv"))
-save(IRR_table_screening_tests, IRR_BCR, IRR_BB, IRR_Col, IRR_CCR, IRR_EB, IRR_LCR, IRR_Mam, IRR_PSA, IRR_SBC, IRR_SBS, IRR_SIG, IRR_BP, file=here("3_DataSummary", "IRR_table_screening_tests_updated.RData"))
+write.csv(IRR_table_screening_tests, file=here("3_DataSummary", db.name, "IR_IRR_DataSummaryResults", "IRR_table_screening_tests_updated.csv"))
+save(IRR_table_screening_tests, IRR_BCR, IRR_BB, IRR_Col, IRR_CCR, IRR_EB, IRR_LCR, IRR_Mam, IRR_PSA, IRR_SBC, IRR_SBS, IRR_SIG, IRR_BP, file=here("3_DataSummary", db.name, "IR_IRR_DataSummaryResults", "IRR_table_screening_tests_updated.RData"))
 
 #### Make pretty table
 Pretty_IRR_table_screening_tests <- flextable(IRR_table_screening_tests) %>% theme_vanilla() %>% 
   set_caption(caption = "Incidence rate ratios of screening and diagnostic tests compared to pre-COVID period") %>% 
   width(width = 1.4) 
 
-save_as_docx('Pretty_IRR_table_screening_tests' = Pretty_IRR_table_screening_tests, path=here("3_DataSummary", "Pretty_IRR_table_screening_tests_updated.docx"))
+save_as_docx('Pretty_IRR_table_screening_tests' = Pretty_IRR_table_screening_tests, path=here("3_DataSummary", db.name, "IR_IRR_DataSummaryResults", "Pretty_IRR_table_screening_tests_updated.docx"))
 
 
 
@@ -462,8 +462,8 @@ IRR_FOREST_screen <- rbind(IRR_BCR_Sep, IRR_BB_Sep, IRR_Col_Sep, IRR_CCR_Sep, IR
                            IRR_Mam_Sep, IRR_PSA_Sep, IRR_SBC_Sep, IRR_SBS_Sep, IRR_SIG_Sep, IRR_BP_Sep)
 
 #### Save IRR
-write.csv(IRR_FOREST_screen, file=here("3_DataSummary", "IRR_FOREST_screen.csv"))
-save(IRR_FOREST_screen, file=here("3_DataSummary", "IRR_FOREST_screen.RData"))
+write.csv(IRR_FOREST_screen, file=here("3_DataSummary", db.name, "IR_IRR_DataSummaryResults", "IRR_FOREST_screen.csv"))
+save(IRR_FOREST_screen, file=here("3_DataSummary", db.name, "IR_IRR_DataSummaryResults", "IRR_FOREST_screen.RData"))
 
 
 # RENAME PERIODS

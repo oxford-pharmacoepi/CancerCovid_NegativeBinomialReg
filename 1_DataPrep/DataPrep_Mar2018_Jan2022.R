@@ -112,18 +112,10 @@ inc_data_pred_final <- inc_data_pred %>% dplyr::select(n_persons, person_days, m
                                              month_year, incidence_start_date, denominator_age_group, denominator_sex, denominator_cohort_id)
 
 
-# rename columns in line with Berta's column names
+# rename columns 
 inc_data_pred_final <- inc_data_pred_final %>% rename("n" = "n_persons", "days" = "person_days", "years" = "person_years", "events" = "n_events")
 
 head(inc_data_pred_final)
-
-
-
-# ADD SES HERE WHEN WE HAVE LINKAGE TO MULITPLE INDEX OF DEPRIVATION DATA
-#
-#
-#
-
 
 
 # save General Pop----
@@ -132,17 +124,3 @@ save(inc_data_pred_final, file = here("1_DataPrep", "Data", "GeneralPop2018_22.R
 write.csv(exclusion_table, file=here("1_DataPrep", "exclusion_table_2018_22.csv"))
 
 
-
-# example plot  
-inc_yrs_plot <- inc_data_pred_final %>%
-  filter(denominator_cohort_id == 1) %>%
-  ggplot(aes(x = incidence_start_date, y=ir_m,
-                            color=outcome, group=outcome)) +
-  geom_point() + geom_line() +
-  scale_y_continuous(limits = c(0, NA)) +
-  ggtitle("Incidence Rates of Cancer in Years Before and After COVID-19 Lockdown") +
-  labs(colour = "Cancer", x="Time" , y="Incidence per 100000 person-months") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  geom_vline(xintercept=as.numeric(as.Date(c("2020-03-23"))),linetype=2, color="red")
-
-inc_yrs_plot
