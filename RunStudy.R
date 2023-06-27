@@ -55,6 +55,13 @@ source(here("3_DataSummary","ScreeningTestTables_IR_IRR_data_prep.R"))
 source(here("3_DataSummary","ScreeningTestTables_IRR_manual.R"))
 info(logger, 'IRR TABLES AND FIGURES OF SCREENING TESTS RAN')
 
+# Zip the files to export
+files2zip <- dir(c(output.folder1, output.folder2, output.folder3, output.folder4), full.names = TRUE)
+zip(zipfile = paste0(db.name, "_full_modelling_results"), files = files2zip)
+
+
+
+
 print("Done!")
 print("-- If all has worked, there should now be .csv files, data objects and 
       tables in the corresponding results folders for each population to share")

@@ -51,6 +51,7 @@ input_data <- "... .csv"
 output.folder1<-here("4_Results", db.name, "Validation")
 output.folder2<-here("4_Results", db.name, "Modelling")
 output.folder3<-here("4_Results", db.name, "Plots")
+output.folder4<-here("3_DataSummary", db.name, "IR_IRR_DataSummaryResults")
 
 
 # Run the study ------
