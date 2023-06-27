@@ -23,4 +23,10 @@ Barclay, N.L., Pineda Moncusi, M., J√∂dicke, A. M., Prieto-Alhambra, D., Ravent√
 4) After running you should then have a zip folder with results to share in your home directory.
 
 ## Associated repositories and documents
-The paper (Barclay et al., in prep) contains analyses from other github repositories which will be added here in due course. In addition, a shiny app through which to view additional cohort diagnostics will be added.
+The paper (Barclay et al., in prep) contains analyses from other github repositories which can be found here:
+https://github.com/oxford-pharmacoepi/CancerCovid_CohortDiagnostics
+https://github.com/oxford-pharmacoepi/CancerCovid_Characterisations
+https://github.com/oxford-pharmacoepi/CancerCovid_IncidencePrevalence
+
+
+In addition, a shiny app through which to view additional cohort diagnostics will be added.
