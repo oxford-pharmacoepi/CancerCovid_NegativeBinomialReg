@@ -63,8 +63,7 @@ zip(zipfile = paste0(db.name, "_full_modelling_results"), files = files2zip)
 
 
 print("Done!")
-print("-- If all has worked, there should now be .csv files, data objects and 
-      tables in the corresponding results folders for each population to share")
+print("-- If all has worked, there should now be a zip folder in your home directory to share")
 print("-- Thank you for running the study!")
 Sys.time()-start
 readLines(log_file)

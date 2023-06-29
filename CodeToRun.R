@@ -9,6 +9,9 @@
 #                                                                              #
 # ============================================================================ #
 
+# Load packages ------
+#renv::activate()
+#renv::restore()
 
 
 ## ----------------------------- LOAD PACKAGES ------------------------------ ##
@@ -56,4 +59,4 @@ output.folder4<-here("3_DataSummary", db.name, "IR_IRR_DataSummaryResults")
 
 # Run the study ------
 source(here("RunStudy.R"))
-# after the study is run you should have a zip folder in your output folder to share
+# after the study is run you should have a zip folder in your home directory to share

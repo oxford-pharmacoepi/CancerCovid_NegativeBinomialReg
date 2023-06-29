@@ -64,7 +64,7 @@ outcome <- "Breast"
 
 periods<- IR%>% dplyr::select("covid")%>%distinct()%>%pull()
 #outcome <-IR%>% dplyr::select("outcome")%>% distinct()%>%pull()
-rateratios <- vector("list",length(number_cohort_id); names(rateratios) = outer(names_cohort_id,outcome,paste,sep="_")
+rateratios <- vector("list",length(number_cohort_id), names(rateratios) = outer(names_cohort_id,outcome,paste,sep="_"))
 
 
 # THERE IS A PROBLEM WITH THE OUTPUT OOF THIS. THERE ARE LISTS OF FEMALES WITH PROSTATE CANCER, AND ALL THE RATIOS i'VE
